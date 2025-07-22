@@ -38,7 +38,14 @@ class CheckersGame {
   }
 
   setBoardState(boardArray, currentPlayerId, myUserId, gameId) {
-    this.gameState = boardArray;
+    console.log("Received raw boardArray:", boardArray);
+
+    // Convert all values to numbers to ensure proper type checking
+    this.gameState = boardArray.map((row) => row.map((cell) => Number(cell)));
+
+    console.log("Converted board state:", this.gameState);
+    console.log("Sample cell type:", typeof this.gameState[0][0]);
+
     this.gameId = gameId;
     this.isMyTurn = currentPlayerId === myUserId;
     this.currentPlayer = this.isMyTurn ? "red" : "black"; // Adjust based on your logic
@@ -161,6 +168,10 @@ class CheckersGame {
   }
 
   highlightPossibleMoves(row, col) {
+    console.log("Highlighting moves for piece at:", row, col);
+    console.log("Game state at position:", this.gameState[row][col]);
+    console.log("Type of value:", typeof this.gameState[row][col]);
+
     const pieceType = this.gameState[row][col];
     const isKing = pieceType === 3 || pieceType === 4;
     const isRed = pieceType === 1 || pieceType === 3;
@@ -191,11 +202,19 @@ class CheckersGame {
       const newRow = row + rowDir;
       const newCol = col + colDir;
 
-      if (
-        this.isValidPosition(newRow, newCol) &&
-        this.gameState[newRow][newCol] === 0
-      ) {
-        this.highlightSquare(newRow, newCol, "possible-move");
+      console.log(`Checking move to ${newRow},${newCol}`);
+
+      if (this.isValidPosition(newRow, newCol)) {
+        console.log(
+          `Position valid. Cell value: ${
+            this.gameState[newRow][newCol]
+          } (type: ${typeof this.gameState[newRow][newCol]})`
+        );
+
+        if (this.gameState[newRow][newCol] === 0) {
+          console.log(`Adding highlight to ${newRow},${newCol}`);
+          this.highlightSquare(newRow, newCol, "possible-move");
+        }
       }
     });
   }
