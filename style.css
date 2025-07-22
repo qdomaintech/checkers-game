@@ -54,7 +54,13 @@ body {
 }
 
 .square.light {
-  background: #f5f5dc;
+  background: repeating-linear-gradient(
+    135deg,
+    #e7d3b1 0px,
+    #e7d3b1 10px,
+    #f5e2c0 10px,
+    #f5e2c0 20px
+  );
 }
 
 .square.highlighted {
