@@ -3,9 +3,10 @@ class CheckersGame {
     this.board = document.getElementById("checkers-board");
     this.currentPlayer = "red";
     this.selectedPiece = null;
-    this.gameState = this.initializeGameState();
-    this.createBoard();
-    this.updateCurrentPlayerDisplay();
+    this.gameState = null; // Start empty, wait for board state from Bubble
+    this.gameId = null; // Will be set when board state is received
+    this.isMyTurn = false; // Will be determined by Bubble
+    // Do NOT call createBoard() or updateCurrentPlayerDisplay() here
   }
 
   initializeGameState() {
@@ -36,8 +37,20 @@ class CheckersGame {
     return state;
   }
 
+  setBoardState(boardArray, currentPlayerId, myUserId, gameId) {
+    this.gameState = boardArray;
+    this.gameId = gameId;
+    this.isMyTurn = currentPlayerId === myUserId;
+    this.currentPlayer = this.isMyTurn ? "red" : "black"; // Adjust based on your logic
+    this.createBoard();
+    this.updateCurrentPlayerDisplay();
+  }
+
   createBoard() {
     this.board.innerHTML = "";
+
+    // Only render if we have a game state
+    if (!this.gameState) return;
 
     for (let row = 0; row < 8; row++) {
       for (let col = 0; col < 8; col++) {
@@ -95,6 +108,9 @@ class CheckersGame {
   }
 
   handleSquareClick(event, row, col) {
+    // Don't allow moves if it's not the player's turn
+    if (!this.isMyTurn) return;
+
     const square = event.currentTarget;
     const piece = square.querySelector(".piece");
 
@@ -297,7 +313,33 @@ class CheckersGame {
   }
 
   sendMoveToParent(fromRow, fromCol, toRow, toCol, player) {
-    // Send move data to parent window (Bubble) via postMessage
+    // Send move data to Bubble via API endpoint
+    if (this.gameId && process.env.NEXT_PUBLIC_BUBBLE_SAVE_MOVE_URL) {
+      const moveData = {
+        game_id: this.gameId,
+        board_state: JSON.stringify(this.gameState),
+        current_player_id:
+          player === "red" ? "red_player_id" : "black_player_id", // You'll need to set actual IDs
+        from_row: fromRow,
+        from_col: fromCol,
+        to_row: toRow,
+        to_col: toCol,
+      };
+
+      fetch(process.env.NEXT_PUBLIC_BUBBLE_SAVE_MOVE_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${process.env.BUBBLE_API_KEY}`,
+        },
+        body: JSON.stringify(moveData),
+      })
+        .then((res) => res.json())
+        .then((data) => console.log("Move saved to Bubble:", data))
+        .catch((err) => console.error("Error saving move:", err));
+    }
+
+    // Also send via postMessage for immediate parent communication
     if (window.parent && window.parent !== window) {
       const moveData = {
         type: "checkers-move",
@@ -316,7 +358,14 @@ class CheckersGame {
 
   // Method to receive messages from parent (Bubble)
   receiveMessageFromParent(event) {
-    if (event.data.type === "reset-game") {
+    if (event.data.type === "set-board-state") {
+      this.setBoardState(
+        event.data.board,
+        event.data.currentPlayerId,
+        event.data.myUserId,
+        event.data.gameId
+      );
+    } else if (event.data.type === "reset-game") {
       this.resetGame();
     } else if (event.data.type === "set-player") {
       this.currentPlayer = event.data.player;
