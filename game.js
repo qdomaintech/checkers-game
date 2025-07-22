@@ -6,7 +6,7 @@ class CheckersGame {
     this.gameState = null; // Start empty, wait for board state from Bubble
     this.gameId = null; // Will be set when board state is received
     this.isMyTurn = false; // Will be determined by Bubble
-    // Do NOT call createBoard() or updateCurrentPlayerDisplay() here
+    this.createBoard(); // Always show the board grid, even when empty
   }
 
   initializeGameState() {
@@ -49,9 +49,6 @@ class CheckersGame {
   createBoard() {
     this.board.innerHTML = "";
 
-    // Only render if we have a game state
-    if (!this.gameState) return;
-
     for (let row = 0; row < 8; row++) {
       for (let col = 0; col < 8; col++) {
         const square = document.createElement("div");
@@ -66,9 +63,13 @@ class CheckersGame {
           square.classList.add("light");
         }
 
-        // Add piece if exists in game state
-        const pieceType = this.gameState[row][col];
-        if (pieceType !== 0) {
+        // Only add piece if gameState exists and this square is occupied
+        if (
+          this.gameState &&
+          this.gameState[row] &&
+          this.gameState[row][col] !== 0
+        ) {
+          const pieceType = this.gameState[row][col];
           const piece = this.createPiece(pieceType, row, col);
           square.appendChild(piece);
         }
