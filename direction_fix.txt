@@ -1,0 +1,10 @@
+# Fix red piece directions to move up
+# Line 188-191: Change red piece directions from [1,-1],[1,1] to [-1,-1],[-1,1]
+sed -i '' '188,191c\
+        [-1, -1],\
+        [-1, 1],\
+      ]; // Red moves up' game.js
+
+# Fix validation logic for red pieces
+# Change: toRow <= fromRow to toRow >= fromRow for red pieces moving up
+sed -i '' 's/if (isRed && toRow <= fromRow) return false; \/\/ Red moves down/if (isRed \&\& toRow >= fromRow) return false; \/\/ Red moves up/' game.js

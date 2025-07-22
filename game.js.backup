@@ -187,9 +187,9 @@ class CheckersGame {
       ]; // All diagonal directions
     } else if (isRed) {
       directions = [
-        [-1, -1],
-        [-1, 1],
-      ]; // Red moves up
+        [1, -1],
+        [1, 1],
+      ]; // Red moves down
     } else {
       directions = [
         [-1, -1],
@@ -262,7 +262,7 @@ class CheckersGame {
 
     // Check direction restrictions for non-kings
     if (!isKing) {
-      if (isRed && toRow >= fromRow) return false; // Red moves up
+      if (isRed && toRow <= fromRow) return false; // Red moves down
       if (!isRed && toRow >= fromRow) return false; // Black moves up
     }
 
