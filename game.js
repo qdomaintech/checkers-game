@@ -37,7 +37,7 @@ class CheckersGame {
     return state;
   }
 
-  setBoardState(boardArray, currentPlayerId, myUserId, gameId) {
+  setBoardState(boardArray, currentPlayerId, myUserId, gameId, apiEndpoint) {
     console.log("Received raw boardArray:", boardArray);
 
     // Convert all values to numbers to ensure proper type checking
@@ -47,6 +47,7 @@ class CheckersGame {
     console.log("Sample cell type:", typeof this.gameState[0][0]);
 
     this.gameId = gameId;
+    this.apiEndpoint = apiEndpoint;
     this.isMyTurn = currentPlayerId === myUserId;
     this.currentPlayer = this.isMyTurn ? "red" : "black"; // Adjust based on your logic
     this.createBoard();
@@ -334,7 +335,7 @@ class CheckersGame {
 
   sendMoveToParent(fromRow, fromCol, toRow, toCol, player) {
     // Send move data to Bubble via API endpoint
-    if (this.gameId && process.env.NEXT_PUBLIC_BUBBLE_SAVE_MOVE_URL) {
+    if (this.gameId && this.apiEndpoint) {
       const moveData = {
         game_id: this.gameId,
         board_state: JSON.stringify(this.gameState),
@@ -346,11 +347,10 @@ class CheckersGame {
         to_col: toCol,
       };
 
-      fetch(process.env.NEXT_PUBLIC_BUBBLE_SAVE_MOVE_URL, {
+      fetch(this.apiEndpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${process.env.BUBBLE_API_KEY}`,
         },
         body: JSON.stringify(moveData),
       })
@@ -383,7 +383,8 @@ class CheckersGame {
         event.data.board,
         event.data.currentPlayerId,
         event.data.myUserId,
-        event.data.gameId
+        event.data.gameId,
+        event.data.apiEndpoint
       );
     } else if (event.data.type === "reset-game") {
       this.resetGame();
