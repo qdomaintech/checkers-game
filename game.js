@@ -251,6 +251,9 @@ class CheckersGame {
     // Recreate the board to reflect changes
     this.createBoard();
 
+    // Add move to log
+    this.addMoveToLog(fromRow, fromCol, toRow, toCol, this.currentPlayer);
+
     // Send move data to parent (Bubble) if embedded
     this.sendMoveToParent(fromRow, fromCol, toRow, toCol, this.currentPlayer);
   }
@@ -263,10 +266,33 @@ class CheckersGame {
   updateCurrentPlayerDisplay() {
     const display = document.getElementById("current-player");
     if (display) {
-      display.textContent = `Current Player: ${
-        this.currentPlayer.charAt(0).toUpperCase() + this.currentPlayer.slice(1)
-      }`;
-      display.style.color = this.currentPlayer === "red" ? "#ff6b6b" : "#ddd";
+      const playerName = this.currentPlayer === "red" ? "Uotoo" : "Cazoo";
+      display.textContent = `${playerName}'s turn`;
+      display.style.color =
+        this.currentPlayer === "red" ? "#ff6b6b" : "#b0d0d0";
+    }
+  }
+
+  addMoveToLog(fromRow, fromCol, toRow, toCol, player) {
+    const moveLog = document.getElementById("move-log");
+    const playerName = player === "red" ? "Uotoo" : "Cazoo";
+    const moveText = `${playerName}: ${String.fromCharCode(97 + fromCol)}${
+      8 - fromRow
+    } → ${String.fromCharCode(97 + toCol)}${8 - toRow}`;
+
+    // Create move entry
+    const moveEntry = document.createElement("div");
+    moveEntry.className = "move-entry";
+    moveEntry.textContent = moveText;
+
+    // Insert before current turn indicator
+    const currentTurn = document.getElementById("current-player");
+    moveLog.insertBefore(moveEntry, currentTurn);
+
+    // Keep only last 8 moves
+    const moves = moveLog.querySelectorAll(".move-entry");
+    if (moves.length > 8) {
+      moveLog.removeChild(moves[0]);
     }
   }
 

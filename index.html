@@ -7,11 +7,35 @@
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <div class="game-container">
-      <h1>Checkers Game</h1>
-      <div id="checkers-board"></div>
-      <div class="game-info">
-        <p id="current-player">Current Player: Red</p>
+    <div class="game-layout">
+      <div class="board-container">
+        <div id="checkers-board"></div>
+      </div>
+
+      <div class="match-info-panel">
+        <div class="player-info">
+          <div class="player-card cazoo">
+            <div class="player-avatar">⚪</div>
+            <span class="player-name">Cazoo</span>
+            <span class="player-label">(P1)</span>
+          </div>
+
+          <div class="player-card uotoo">
+            <div class="player-avatar">🔴</div>
+            <span class="player-name">Uotoo</span>
+            <span class="player-label">(P2)</span>
+          </div>
+        </div>
+
+        <div class="game-stats">
+          <h3>Stack:</h3>
+          <p class="stack-amount">💰10,000 vs 💰10,000</p>
+
+          <h3>Piece movement:</h3>
+          <div class="move-log" id="move-log">
+            <p class="current-turn" id="current-player">Red's turn</p>
+          </div>
+        </div>
       </div>
     </div>
     <script src="game.js"></script>
