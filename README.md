@@ -37,6 +37,7 @@ This project demonstrates a hybrid architecture where:
 - [x] Red and black piece placement
 - [x] Piece movement with direction restrictions
 - [x] Move highlighting (golden squares for valid moves)
+- [x] Must-capture piece highlighting (pulsing red glow for mandatory captures)
 - [x] King promotion when pieces reach opposite end
 - [x] Turn-based gameplay
 - [x] Proper checkers turn logic with consecutive jump handling
@@ -50,6 +51,7 @@ This project demonstrates a hybrid architecture where:
 - [x] Player information panel with game stats
 - [x] Move history logging
 - [x] Board rotation for optimal player perspective (Player 2 sees their pieces at bottom)
+- [x] Animated visual indicators for pieces that must capture (pulsing red glow effect)
 
 ### Backend Integration
 
@@ -140,6 +142,27 @@ Game {
    ```
 4. Bubble updates database
 5. Real-time sync updates opponent's game
+
+## 🎯 Must-Capture Highlighting Feature
+
+### User Experience
+
+When mandatory captures are available, the game automatically highlights pieces that must capture opponents with a **pulsing red glow animation**. This feature eliminates confusion and ensures players never miss mandatory capture opportunities.
+
+### How It Works
+
+- **Automatic Detection**: Game scans all player pieces to identify capture opportunities
+- **Visual Indicator**: Pieces that can capture pulse with a red glow and subtle scaling animation
+- **Turn-Based**: Only highlights pieces for the current player on their turn
+- **Smart Clearing**: Highlights automatically clear when pieces are selected and reappear when deselected
+- **Dynamic Updates**: Refreshes highlighting when turns change or after moves are made
+
+### Technical Details
+
+- **CSS Animation**: Smooth `pulse-capture` keyframe animation with red shadow effects
+- **JavaScript Logic**: `highlightMustCapturePieces()` and `clearMustCaptureHighlights()` methods
+- **Performance**: Lightweight implementation with minimal DOM manipulation
+- **Integration**: Seamlessly integrated into existing board creation and turn management
 
 ## 🛠️ Technical Implementation
 
@@ -282,4 +305,5 @@ For questions about the architecture or implementation, refer to the commit hist
 
 **Last Updated**: December 2024  
 **Status**: Active Development  
-**Demo**: https://checkers-game-two.vercel.app
+**Demo**: https://checkers-game-two.vercel.app  
+**Latest Feature**: Must-capture piece highlighting with pulsing red glow animation
