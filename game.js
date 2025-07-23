@@ -930,10 +930,6 @@ class CheckersGame {
       display.style.color =
         this.currentPlayer === "red" ? "#ff6b6b" : "#b0d0d0";
     }
-
-    // Update must-capture highlights when turn changes
-    this.clearMustCaptureHighlights();
-    this.highlightMustCapturePieces();
   }
 
   showCaptureMessage() {
