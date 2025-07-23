@@ -360,48 +360,107 @@ class CheckersGame {
 
     // If captures are available, only show capture moves
     if (!capturesAvailable) {
-      // Check each direction for valid moves (1 square) - only when no captures available
+      // Check each direction for valid moves
       directions.forEach(([rowDir, colDir]) => {
-        const newRow = row + rowDir;
-        const newCol = col + colDir;
+        if (isKing) {
+          // Kings can fly multiple squares
+          for (let distance = 1; distance < 8; distance++) {
+            const newRow = row + rowDir * distance;
+            const newCol = col + colDir * distance;
 
-        console.log(`Checking move to ${newRow},${newCol}`);
+            if (!this.isValidPosition(newRow, newCol)) break;
 
-        if (this.isValidPosition(newRow, newCol)) {
-          console.log(
-            `Position valid. Cell value: ${
-              this.gameState[newRow][newCol]
-            } (type: ${typeof this.gameState[newRow][newCol]})`
-          );
+            if (this.gameState[newRow][newCol] !== 0) break; // Path blocked
 
-          if (this.gameState[newRow][newCol] === 0) {
-            console.log(`Adding highlight to ${newRow},${newCol}`);
+            console.log(`Adding king flight highlight to ${newRow},${newCol}`);
+            this.highlightSquare(newRow, newCol, "possible-move");
+          }
+        } else {
+          // Regular pieces move 1 square
+          const newRow = row + rowDir;
+          const newCol = col + colDir;
+
+          if (
+            this.isValidPosition(newRow, newCol) &&
+            this.gameState[newRow][newCol] === 0
+          ) {
+            console.log(`Adding regular move highlight to ${newRow},${newCol}`);
             this.highlightSquare(newRow, newCol, "possible-move");
           }
         }
       });
     }
 
-    // Always check for jump moves (2 squares)
+    // Check for captures (jumping over opponents)
     directions.forEach(([rowDir, colDir]) => {
-      const jumpRow = row + rowDir * 2;
-      const jumpCol = col + colDir * 2;
-      const middleRow = row + rowDir;
-      const middleCol = col + colDir;
+      if (isKing) {
+        // Kings can capture at any distance along diagonal
+        this.findKingCaptures(row, col, rowDir, colDir);
+      } else {
+        // Regular pieces capture by jumping 2 squares
+        const jumpRow = row + rowDir * 2;
+        const jumpCol = col + colDir * 2;
+        const middleRow = row + rowDir;
+        const middleCol = col + colDir;
 
-      if (
-        this.isValidPosition(jumpRow, jumpCol) &&
-        this.gameState[jumpRow][jumpCol] === 0 && // Target square empty
-        this.gameState[middleRow][middleCol] !== 0 && // Middle has piece
-        this.isOpponentPiece(
-          this.gameState[middleRow][middleCol],
-          this.currentPlayer
-        )
-      ) {
-        console.log(`Adding jump highlight to ${jumpRow},${jumpCol}`);
-        this.highlightSquare(jumpRow, jumpCol, "possible-move");
+        if (
+          this.isValidPosition(jumpRow, jumpCol) &&
+          this.gameState[jumpRow][jumpCol] === 0 && // Target square empty
+          this.gameState[middleRow][middleCol] !== 0 && // Middle has piece
+          this.isOpponentPiece(
+            this.gameState[middleRow][middleCol],
+            this.currentPlayer
+          )
+        ) {
+          console.log(`Adding regular jump highlight to ${jumpRow},${jumpCol}`);
+          this.highlightSquare(jumpRow, jumpCol, "possible-move");
+        }
       }
     });
+  }
+
+  // New method for king capture detection
+  findKingCaptures(row, col, rowDir, colDir) {
+    let foundOpponent = false;
+    let opponentRow = -1;
+    let opponentCol = -1;
+
+    // Scan along the diagonal
+    for (let distance = 1; distance < 8; distance++) {
+      const checkRow = row + rowDir * distance;
+      const checkCol = col + colDir * distance;
+
+      if (!this.isValidPosition(checkRow, checkCol)) break;
+
+      const pieceAtPosition = this.gameState[checkRow][checkCol];
+
+      if (pieceAtPosition === 0) {
+        // Empty square
+        if (foundOpponent) {
+          // We can land here after jumping the opponent
+          console.log(
+            `Adding king capture landing option at ${checkRow},${checkCol}`
+          );
+          this.highlightSquare(checkRow, checkCol, "possible-move");
+        }
+        continue;
+      }
+
+      if (this.isOpponentPiece(pieceAtPosition, this.currentPlayer)) {
+        if (foundOpponent) {
+          // Second opponent piece blocks further movement
+          break;
+        }
+        // First opponent piece found
+        foundOpponent = true;
+        opponentRow = checkRow;
+        opponentCol = checkCol;
+        continue;
+      }
+
+      // Our own piece blocks movement
+      break;
+    }
   }
 
   isValidPosition(row, col) {
@@ -439,7 +498,7 @@ class CheckersGame {
     const rowDiff = Math.abs(toRow - fromRow);
     const colDiff = Math.abs(toCol - fromCol);
 
-    if (rowDiff !== colDiff || (rowDiff !== 1 && rowDiff !== 2)) return false;
+    if (rowDiff !== colDiff) return false; // Must be diagonal
 
     const pieceType = this.gameState[fromRow][fromCol];
     const isKing = pieceType === 3 || pieceType === 4;
@@ -447,29 +506,94 @@ class CheckersGame {
 
     // Check if captures are available - if so, only allow capture moves
     const capturesAvailable = this.hasAvailableCaptures(this.currentPlayer);
-    if (capturesAvailable && rowDiff === 1) {
-      return false; // Must capture when captures are available
-    }
 
-    // Check direction restrictions for non-kings
-    if (!isKing) {
-      if (isRed && toRow >= fromRow) return false; // Red moves up (toward row 0)
-      if (!isRed && toRow <= fromRow) return false; // Black moves down (toward row 7)
-    }
+    if (isKing) {
+      // Kings can move/capture at any distance
+      return this.isValidKingMove(
+        fromRow,
+        fromCol,
+        toRow,
+        toCol,
+        capturesAvailable
+      );
+    } else {
+      // Regular piece logic (existing)
+      if (rowDiff !== 1 && rowDiff !== 2) return false;
 
-    // For jump moves (2 squares), check if jumping over opponent
-    if (rowDiff === 2) {
-      const middleRow = fromRow + (toRow - fromRow) / 2;
-      const middleCol = fromCol + (toCol - fromCol) / 2;
-
-      // Must jump over opponent piece
-      const middlePiece = this.gameState[middleRow][middleCol];
-      if (
-        middlePiece === 0 ||
-        !this.isOpponentPiece(middlePiece, this.currentPlayer)
-      ) {
-        return false;
+      if (capturesAvailable && rowDiff === 1) {
+        return false; // Must capture when captures are available
       }
+
+      // Check direction restrictions for non-kings
+      if (isRed && toRow >= fromRow) return false; // Red moves up
+      if (!isRed && toRow <= fromRow) return false; // Black moves down
+
+      // For jump moves (2 squares), check if jumping over opponent
+      if (rowDiff === 2) {
+        const middleRow = fromRow + (toRow - fromRow) / 2;
+        const middleCol = fromCol + (toCol - fromCol) / 2;
+        const middlePiece = this.gameState[middleRow][middleCol];
+
+        if (
+          middlePiece === 0 ||
+          !this.isOpponentPiece(middlePiece, this.currentPlayer)
+        ) {
+          return false;
+        }
+      }
+
+      return true;
+    }
+  }
+
+  // New method for validating king moves
+  isValidKingMove(fromRow, fromCol, toRow, toCol, capturesAvailable) {
+    const rowDir = Math.sign(toRow - fromRow);
+    const colDir = Math.sign(toCol - fromCol);
+    const distance = Math.abs(toRow - fromRow);
+
+    let foundOpponent = false;
+    let opponentCount = 0;
+
+    // Check each square along the path
+    for (let step = 1; step <= distance; step++) {
+      const checkRow = fromRow + rowDir * step;
+      const checkCol = fromCol + colDir * step;
+      const pieceAtPosition = this.gameState[checkRow][checkCol];
+
+      if (step === distance) {
+        // Final destination - must be empty (already checked)
+        continue;
+      }
+
+      if (pieceAtPosition === 0) {
+        // Empty square - continue
+        continue;
+      }
+
+      if (this.isOpponentPiece(pieceAtPosition, this.currentPlayer)) {
+        foundOpponent = true;
+        opponentCount++;
+
+        if (opponentCount > 1) {
+          // Can't jump over multiple pieces in one move
+          return false;
+        }
+        continue;
+      }
+
+      // Our own piece blocks the path
+      return false;
+    }
+
+    // If captures are available but this move doesn't capture, it's invalid
+    if (capturesAvailable && !foundOpponent) {
+      return false;
+    }
+
+    // If this is a capture move, ensure exactly one opponent was jumped
+    if (foundOpponent && opponentCount !== 1) {
+      return false;
     }
 
     return true;
@@ -478,18 +602,43 @@ class CheckersGame {
   makeMove(fromRow, fromCol, toRow, toCol) {
     // Store the original piece type before moving
     const originalPieceType = Number(this.gameState[fromRow][fromCol]);
+    const isKing = originalPieceType === 3 || originalPieceType === 4;
 
     // Move piece in game state
     this.gameState[fromRow][fromCol] = 0;
     this.gameState[toRow][toCol] = originalPieceType;
 
-    // Handle captures for jumps
-    const rowDiff = Math.abs(toRow - fromRow);
-    if (rowDiff === 2) {
+    // Handle captures
+    const rowDir = Math.sign(toRow - fromRow);
+    const colDir = Math.sign(toCol - fromCol);
+    const distance = Math.abs(toRow - fromRow);
+
+    if (isKing && distance > 1) {
+      // FLYING KING CAPTURE: Remove the jumped piece anywhere along the path
+      for (let step = 1; step < distance; step++) {
+        const checkRow = fromRow + rowDir * step;
+        const checkCol = fromCol + colDir * step;
+
+        if (
+          this.gameState[checkRow][checkCol] !== 0 &&
+          this.isOpponentPiece(
+            this.gameState[checkRow][checkCol],
+            this.currentPlayer
+          )
+        ) {
+          this.gameState[checkRow][checkCol] = 0;
+          console.log(
+            `King captured piece at ${checkRow},${checkCol}, landed at ${toRow},${toCol}`
+          );
+          break; // Only one piece per move
+        }
+      }
+    } else if (!isKing && distance === 2) {
+      // REGULAR PIECE CAPTURE: Land immediately after captured piece
       const capturedRow = fromRow + (toRow - fromRow) / 2;
       const capturedCol = fromCol + (toCol - fromCol) / 2;
-      this.gameState[capturedRow][capturedCol] = 0; // Remove captured piece
-      console.log(`Captured piece at ${capturedRow},${capturedCol}`);
+      this.gameState[capturedRow][capturedCol] = 0;
+      console.log(`Regular piece captured at ${capturedRow},${capturedCol}`);
     }
 
     // Convert parameters to numbers for safe comparison
@@ -609,17 +758,45 @@ class CheckersGame {
   }
 
   getNextPlayer(fromRow, fromCol, toRow, toCol, currentPlayer, gameState) {
-    const rowDiff = Math.abs(toRow - fromRow);
+    const pieceType = gameState[toRow][toCol];
+    const isKing = pieceType === 3 || pieceType === 4;
+    const distance = Math.abs(toRow - fromRow);
 
-    // If it was a jump (moved 2 squares), check for additional jumps
-    if (rowDiff === 2) {
-      // Check if the player who just jumped has more jumps available
+    // Check if this was a capture move
+    let wasCapture = false;
+
+    if (isKing && distance > 1) {
+      // For kings, any move > 1 square could be a capture
+      // Check if there was actually a piece captured along the path
+      const rowDir = Math.sign(toRow - fromRow);
+      const colDir = Math.sign(toCol - fromCol);
+
+      for (let step = 1; step < distance; step++) {
+        const checkRow = fromRow + rowDir * step;
+        const checkCol = fromCol + colDir * step;
+
+        // If there was an opponent piece here before the move, it was captured
+        if (this.isValidPosition(checkRow, checkCol)) {
+          // We can't directly check the old board state, but if the move was valid
+          // and distance > 1, it must have been a capture
+          wasCapture = true;
+          break;
+        }
+      }
+    } else if (!isKing && distance === 2) {
+      // For regular pieces, 2-square moves are always captures
+      wasCapture = true;
+    }
+
+    // If it was a capture, check for additional captures
+    if (wasCapture) {
+      // Check if the player who just captured has more captures available
       if (this.hasAdditionalJumps(toRow, toCol, currentPlayer, gameState)) {
         return currentPlayer; // Same player continues
       }
     }
 
-    // Normal move or no more jumps available
+    // Normal move or no more captures available
     return currentPlayer === "red" ? "black" : "red";
   }
 
@@ -628,16 +805,14 @@ class CheckersGame {
     const isKing = pieceType === 3 || pieceType === 4;
     const isRed = pieceType === 1 || pieceType === 3;
 
-    // Define jump directions (2 squares)
-    let directions = [];
+    // Use enhanced king logic for kings
     if (isKing) {
-      directions = [
-        [-2, -2],
-        [-2, 2],
-        [2, -2],
-        [2, 2],
-      ];
-    } else if (isRed) {
+      return this.hasAdditionalKingCaptures(row, col, player, gameState);
+    }
+
+    // Define jump directions (2 squares) for regular pieces
+    let directions = [];
+    if (isRed) {
       directions = [
         [-2, -2],
         [-2, 2],
@@ -668,6 +843,75 @@ class CheckersGame {
     }
 
     return false; // No additional jumps
+  }
+
+  // New method for flying king additional captures
+  hasAdditionalKingCaptures(row, col, player, gameState) {
+    const pieceType = gameState[row][col];
+    const isKing = pieceType === 3 || pieceType === 4;
+
+    if (!isKing) return false; // Only for kings
+
+    // Check all four diagonal directions
+    const directions = [
+      [-1, -1],
+      [-1, 1],
+      [1, -1],
+      [1, 1],
+    ];
+
+    for (let [rowDir, colDir] of directions) {
+      // Scan entire diagonal for capture opportunities
+      if (
+        this.canKingCaptureInDirection(
+          row,
+          col,
+          rowDir,
+          colDir,
+          player,
+          gameState
+        )
+      ) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  // Helper method to check king captures in a specific direction
+  canKingCaptureInDirection(row, col, rowDir, colDir, player, gameState) {
+    let foundOpponent = false;
+
+    // Scan along diagonal
+    for (let distance = 1; distance < 8; distance++) {
+      const checkRow = row + rowDir * distance;
+      const checkCol = col + colDir * distance;
+
+      if (!this.isValidPosition(checkRow, checkCol)) break;
+
+      const pieceAtPosition = gameState[checkRow][checkCol];
+
+      if (pieceAtPosition === 0) {
+        // Empty square
+        if (foundOpponent) {
+          // Can land here after capture - this is a valid capture!
+          return true;
+        }
+        continue;
+      }
+
+      if (this.isOpponentPiece(pieceAtPosition, player)) {
+        if (foundOpponent) break; // Can't capture multiple in one move
+        foundOpponent = true;
+        continue;
+      }
+
+      // Our own piece blocks path
+      break;
+    }
+
+    return false;
   }
 
   isOpponentPiece(pieceType, currentPlayer) {
