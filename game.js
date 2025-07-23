@@ -309,14 +309,14 @@ class CheckersGame {
       ]; // All diagonal directions
     } else if (isRed) {
       directions = [
-        [-1, -1],
-        [-1, 1],
-      ]; // Red moves up
-    } else {
-      directions = [
         [1, -1],
         [1, 1],
-      ]; // Black moves down (FIXED)
+      ]; // Red moves down (toward row 7)
+    } else {
+      directions = [
+        [-1, -1],
+        [-1, 1],
+      ]; // Black moves up (toward row 0)
     }
 
     // If captures are available, only show capture moves
@@ -414,8 +414,8 @@ class CheckersGame {
 
     // Check direction restrictions for non-kings
     if (!isKing) {
-      if (isRed && toRow >= fromRow) return false; // Red moves up
-      if (!isRed && toRow <= fromRow) return false; // Black moves down (FIXED)
+      if (isRed && toRow <= fromRow) return false; // Red moves down (toward row 7)
+      if (!isRed && toRow >= fromRow) return false; // Black moves up (toward row 0)
     }
 
     // For jump moves (2 squares), check if jumping over opponent
@@ -562,14 +562,14 @@ class CheckersGame {
       ];
     } else if (isRed) {
       directions = [
-        [-2, -2],
-        [-2, 2],
-      ]; // Red moves up
-    } else {
-      directions = [
         [2, -2],
         [2, 2],
-      ]; // Black moves down
+      ]; // Red moves down (toward row 7)
+    } else {
+      directions = [
+        [-2, -2],
+        [-2, 2],
+      ]; // Black moves up (toward row 0)
     }
 
     // Check each direction for valid jumps
@@ -644,14 +644,14 @@ class CheckersGame {
       ];
     } else if (isRed) {
       directions = [
-        [-2, -2],
-        [-2, 2],
-      ]; // Red moves up
-    } else {
-      directions = [
         [2, -2],
         [2, 2],
-      ]; // Black moves down
+      ]; // Red moves down (toward row 7)
+    } else {
+      directions = [
+        [-2, -2],
+        [-2, 2],
+      ]; // Black moves up (toward row 0)
     }
 
     // Check each direction for valid captures
