@@ -310,6 +310,9 @@ class CheckersGame {
 
     // Highlight possible moves
     this.highlightPossibleMoves(row, col);
+
+    // Send selection to opponent via parent
+    this.sendSelectionToParent(row, col, "select");
   }
 
   deselectPiece() {
@@ -323,8 +326,182 @@ class CheckersGame {
       square.classList.remove("highlighted", "possible-move");
     });
 
+    // Send deselection to opponent via parent
+    this.sendSelectionToParent(null, null, "deselect");
+
     // Re-highlight must-capture pieces when no piece is selected
     this.highlightMustCapturePieces();
+  }
+
+  // Send selection events to opponent via parent
+  sendSelectionToParent(row, col, action) {
+    if (window.parent && window.parent !== window) {
+      const selectionData = {
+        type: "checkers-selection",
+        action: action, // 'select' or 'deselect'
+        row: row,
+        col: col,
+        gameId: this.gameId,
+        playerId: this.myUserId,
+        playerColor: this.myColor,
+        possibleMoves:
+          action === "select" ? this.getPossibleMoves(row, col) : [],
+      };
+
+      window.parent.postMessage(selectionData, "*");
+    }
+  }
+
+  // Get possible moves for a piece
+  getPossibleMoves(row, col) {
+    const moves = [];
+    const pieceType = this.gameState[row][col];
+    const isKing = pieceType === 3 || pieceType === 4;
+    const isRed = pieceType === 1 || pieceType === 3;
+    const capturesAvailable = this.hasAvailableCaptures(this.currentPlayer);
+
+    // Define movement directions
+    let directions = [];
+    if (isKing) {
+      directions = [
+        [-1, -1],
+        [-1, 1],
+        [1, -1],
+        [1, 1],
+      ];
+    } else if (isRed) {
+      directions = [
+        [-1, -1],
+        [-1, 1],
+      ];
+    } else {
+      directions = [
+        [1, -1],
+        [1, 1],
+      ];
+    }
+
+    // Check each direction for valid moves
+    directions.forEach(([rowDir, colDir]) => {
+      if (isKing) {
+        // Kings can fly multiple squares
+        for (let distance = 1; distance < 8; distance++) {
+          const newRow = row + rowDir * distance;
+          const newCol = col + colDir * distance;
+
+          if (!this.isValidPosition(newRow, newCol)) break;
+          if (this.gameState[newRow][newCol] !== 0) break;
+
+          if (!capturesAvailable) {
+            moves.push({ row: newRow, col: newCol, type: "move" });
+          }
+        }
+        // Check for king captures
+        this.addKingCaptureMoves(row, col, rowDir, colDir, moves);
+      } else {
+        // Regular pieces move 1 square
+        const newRow = row + rowDir;
+        const newCol = col + colDir;
+
+        if (
+          this.isValidPosition(newRow, newCol) &&
+          this.gameState[newRow][newCol] === 0 &&
+          !capturesAvailable
+        ) {
+          moves.push({ row: newRow, col: newCol, type: "move" });
+        }
+
+        // Check for regular captures (2 squares)
+        const jumpRow = row + rowDir * 2;
+        const jumpCol = col + colDir * 2;
+        const middleRow = row + rowDir;
+        const middleCol = col + colDir;
+
+        if (
+          this.isValidPosition(jumpRow, jumpCol) &&
+          this.gameState[jumpRow][jumpCol] === 0 &&
+          this.gameState[middleRow][middleCol] !== 0 &&
+          this.isOpponentPiece(
+            this.gameState[middleRow][middleCol],
+            this.currentPlayer
+          )
+        ) {
+          moves.push({ row: jumpRow, col: jumpCol, type: "capture" });
+        }
+      }
+    });
+
+    return moves;
+  }
+
+  // Helper method for king capture moves
+  addKingCaptureMoves(row, col, rowDir, colDir, moves) {
+    let foundOpponent = false;
+
+    for (let distance = 1; distance < 8; distance++) {
+      const checkRow = row + rowDir * distance;
+      const checkCol = col + colDir * distance;
+
+      if (!this.isValidPosition(checkRow, checkCol)) break;
+
+      const pieceAtPosition = this.gameState[checkRow][checkCol];
+
+      if (pieceAtPosition === 0) {
+        if (foundOpponent) {
+          moves.push({ row: checkRow, col: checkCol, type: "capture" });
+        }
+        continue;
+      }
+
+      if (this.isOpponentPiece(pieceAtPosition, this.currentPlayer)) {
+        if (foundOpponent) break;
+        foundOpponent = true;
+        continue;
+      }
+
+      break;
+    }
+  }
+
+  // Display opponent's selection transparently
+  showOpponentSelection(row, col, possibleMoves) {
+    // Clear any existing opponent highlights
+    this.clearOpponentHighlights();
+
+    if (row !== null && col !== null) {
+      // Highlight the selected piece
+      const selectedSquare = document.querySelector(
+        `[data-row="${row}"][data-col="${col}"]`
+      );
+      const piece = selectedSquare?.querySelector(".piece");
+
+      if (selectedSquare) {
+        selectedSquare.classList.add("opponent-selected");
+      }
+      if (piece) {
+        piece.classList.add("opponent-selected");
+      }
+
+      // Highlight possible moves
+      possibleMoves.forEach((move) => {
+        const square = document.querySelector(
+          `[data-row="${move.row}"][data-col="${move.col}"]`
+        );
+        if (square) {
+          square.classList.add("opponent-possible-move");
+        }
+      });
+    }
+  }
+
+  // Clear opponent highlights
+  clearOpponentHighlights() {
+    document.querySelectorAll(".square").forEach((square) => {
+      square.classList.remove("opponent-selected", "opponent-possible-move");
+    });
+    document.querySelectorAll(".piece").forEach((piece) => {
+      piece.classList.remove("opponent-selected");
+    });
   }
 
   highlightPossibleMoves(row, col) {
@@ -703,6 +880,9 @@ class CheckersGame {
 
     // Recreate the board to reflect changes
     this.createBoard();
+
+    // Clear opponent highlights after a move is made
+    this.clearOpponentHighlights();
 
     // Add move to log
     this.addMoveToLog(fromRow, fromCol, toRow, toCol, this.currentPlayer);
@@ -1088,6 +1268,17 @@ class CheckersGame {
     } else if (event.data.type === "set-player") {
       this.currentPlayer = event.data.player;
       this.updateCurrentPlayerDisplay();
+    } else if (event.data.type === "opponent-selection") {
+      // Handle opponent selection events
+      if (event.data.action === "select") {
+        this.showOpponentSelection(
+          event.data.row,
+          event.data.col,
+          event.data.possibleMoves
+        );
+      } else if (event.data.action === "deselect") {
+        this.clearOpponentHighlights();
+      }
     }
   }
 

@@ -227,6 +227,27 @@ body {
   background: rgba(255, 255, 255, 0.05);
 }
 
+/* Add styles for opponent selection visibility */
+.square.opponent-selected {
+  background: rgba(255, 255, 0, 0.3) !important;
+  box-shadow: inset 0 0 10px rgba(255, 255, 0, 0.4);
+  border: 1px solid rgba(255, 255, 0, 0.5);
+}
+
+.square.opponent-possible-move {
+  background: rgba(255, 215, 0, 0.2) !important;
+  box-shadow: 0 0 0 2px rgba(255, 215, 0, 0.3),
+    inset 0 0 5px rgba(255, 215, 0, 0.3);
+  border: 1px solid rgba(191, 161, 0, 0.4);
+  z-index: 1;
+  position: relative;
+}
+
+.piece.opponent-selected {
+  box-shadow: 0 0 15px rgba(255, 255, 0, 0.5), 0 4px 12px rgba(0, 0, 0, 0.4);
+  z-index: 1;
+}
+
 @media (max-width: 900px) {
   .game-layout {
     flex-direction: column;
