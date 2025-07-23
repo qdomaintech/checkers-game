@@ -333,14 +333,74 @@ class CheckersGame {
     }
   }
 
+
+  getNextPlayer(fromRow, fromCol, toRow, toCol, currentPlayer, gameState) {
+    const rowDiff = Math.abs(toRow - fromRow);
+    
+    // If it was a jump (moved 2 squares), check for additional jumps
+    if (rowDiff === 2) {
+      // Check if the player who just jumped has more jumps available
+      if (this.hasAdditionalJumps(toRow, toCol, currentPlayer, gameState)) {
+        return currentPlayer; // Same player continues
+      }
+    }
+    
+    // Normal move or no more jumps available
+    return currentPlayer === "red" ? "black" : "red";
+  }
+
+  hasAdditionalJumps(row, col, player, gameState) {
+    const pieceType = gameState[row][col];
+    const isKing = pieceType === 3 || pieceType === 4;
+    const isRed = pieceType === 1 || pieceType === 3;
+    
+    // Define jump directions (2 squares)
+    let directions = [];
+    if (isKing) {
+      directions = [[-2, -2], [-2, 2], [2, -2], [2, 2]];
+    } else if (isRed) {
+      directions = [[-2, -2], [-2, 2]]; // Red moves up
+    } else {
+      directions = [[2, -2], [2, 2]]; // Black moves down
+    }
+    
+    // Check each direction for valid jumps
+    for (let [rowDir, colDir] of directions) {
+      const jumpToRow = row + rowDir;
+      const jumpToCol = col + colDir;
+      const middleRow = row + rowDir/2;
+      const middleCol = col + colDir/2;
+      
+      if (this.isValidPosition(jumpToRow, jumpToCol) && 
+          gameState[jumpToRow][jumpToCol] === 0 && // Target square empty
+          gameState[middleRow][middleCol] !== 0 && // Middle has piece
+          this.isOpponentPiece(gameState[middleRow][middleCol], player)) { // Middle is opponent
+        return true; // Additional jump available
+      }
+    }
+    
+    return false; // No additional jumps
+  }
+
+  isOpponentPiece(pieceType, currentPlayer) {
+    const isRed = pieceType === 1 || pieceType === 3;
+    const isBlack = pieceType === 2 || pieceType === 4;
+    
+    if (currentPlayer === "red") {
+      return isBlack; // Red player's opponent is black
+    } else {
+      return isRed; // Black player's opponent is red
+    }
+  }
+
+
   sendMoveToParent(fromRow, fromCol, toRow, toCol, player) {
     // Send move data to Bubble via API endpoint
     if (this.gameId && this.apiEndpoint) {
       const moveData = {
         game_id: this.gameId,
         board_state: JSON.stringify(this.gameState),
-        current_player_id:
-          player === "red" ? "red_player_id" : "black_player_id", // You'll need to set actual IDs
+        current_player_id: this.getNextPlayer(fromRow, fromCol, toRow, toCol, player, this.gameState) === "red" ? "red_player_id" : "black_player_id",
         from_row: fromRow,
         from_col: fromCol,
         to_row: toRow,
