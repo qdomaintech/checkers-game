@@ -38,7 +38,7 @@ This project demonstrates a hybrid architecture where:
 - [x] Piece movement with direction restrictions
 - [x] Move highlighting (golden squares for valid moves)
 - [x] Must-capture piece highlighting (pulsing red glow for mandatory captures)
-- [x] King promotion when pieces reach opposite end
+- [x] King promotion when pieces reach opposite end (recently fixed)
 - [x] Turn-based gameplay
 - [x] Proper checkers turn logic with consecutive jump handling
 
@@ -288,6 +288,33 @@ checkers-game/
 }
 ```
 
+## 🔧 Recent Updates
+
+### King Promotion Bug Fix (December 2024)
+
+**Issue**: King promotion logic had critical JavaScript errors that prevented pieces from being promoted to kings when reaching the opposite end of the board.
+
+**Problems Fixed**:
+
+- ❌ **JavaScript Error**: Attempting to reassign `const` variable caused runtime errors
+- ❌ **Parameter Modification**: Direct reassignment of function parameters created unpredictable behavior
+- ❌ **Type Conversion Issues**: Inconsistent handling of numeric values in promotion logic
+- ❌ **Visual Updates**: Promoted pieces didn't display the golden crown (♔) symbol
+
+**Solution**:
+
+- ✅ **Safe Variable Handling**: Created `originalPieceType` variable to store piece data safely
+- ✅ **Parameter Protection**: Used `targetRow` and `targetCol` variables instead of modifying parameters
+- ✅ **Proper Type Conversion**: Explicit number conversion at the right points in the logic
+- ✅ **Immediate Visual Feedback**: `createBoard()` now properly updates display after promotion
+
+**Result**:
+
+- Red pieces reaching row 0 now properly become red kings (piece type 1 → 3)
+- Black pieces reaching row 7 now properly become black kings (piece type 2 → 4)
+- Kings immediately display the golden crown (♔) symbol
+- Kings can move in all diagonal directions (forward and backward)
+
 ## 🤝 Contributing
 
 This is a demonstration project showing Bubble + external service integration. Key learnings:
@@ -306,4 +333,4 @@ For questions about the architecture or implementation, refer to the commit hist
 **Last Updated**: December 2024  
 **Status**: Active Development  
 **Demo**: https://checkers-game-two.vercel.app  
-**Latest Feature**: Must-capture piece highlighting with pulsing red glow animation
+**Latest Update**: King promotion bug fix - pieces now properly promote to kings with visual crown display
