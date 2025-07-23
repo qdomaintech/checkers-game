@@ -825,12 +825,22 @@ class CheckersGame {
         }
       }
     } else if (!isKing && distance === 2) {
-      // REGULAR PIECE CAPTURE: Land immediately after captured piece
+      // REGULAR PIECE CAPTURE: Check if there's actually a piece to capture
       const capturedRow = fromRow + (toRow - fromRow) / 2;
       const capturedCol = fromCol + (toCol - fromCol) / 2;
-      this.gameState[capturedRow][capturedCol] = 0;
-      captureOccurred = true; // Mark that a capture occurred
-      console.log(`Regular piece captured at ${capturedRow},${capturedCol}`);
+      
+      // Only capture if there's an opponent piece in the middle
+      if (
+        this.gameState[capturedRow][capturedCol] !== 0 &&
+        this.isOpponentPiece(
+          this.gameState[capturedRow][capturedCol],
+          this.currentPlayer
+        )
+      ) {
+        this.gameState[capturedRow][capturedCol] = 0;
+        captureOccurred = true; // Mark that a capture occurred
+        console.log(`Regular piece captured at ${capturedRow},${capturedCol}`);
+      }
     }
 
     // Convert parameters to numbers for safe comparison
