@@ -98,8 +98,47 @@ class CheckersGame {
     });
 
     this.createBoard();
+    this.checkAndFixExistingPromotions(); // Fix pieces that should already be promoted
     this.setBoardOrientation(); // Add board rotation based on player color
     this.updateCurrentPlayerDisplay();
+  }
+
+  checkAndFixExistingPromotions() {
+    console.log(`🔧 CHECKING FOR EXISTING PIECES THAT SHOULD BE PROMOTED...`);
+    let promotionsMade = 0;
+
+    // Check row 0 for red pieces that should be kings
+    for (let col = 0; col < 8; col++) {
+      if (this.gameState[0][col] === 1) {
+        // Red piece in promotion row
+        console.log(
+          `🔴 Found red piece at [0,${col}] that should be king - promoting 1 → 3`
+        );
+        this.gameState[0][col] = 3;
+        promotionsMade++;
+      }
+    }
+
+    // Check row 7 for black pieces that should be kings
+    for (let col = 0; col < 8; col++) {
+      if (this.gameState[7][col] === 2) {
+        // Black piece in promotion row
+        console.log(
+          `⚫ Found black piece at [7,${col}] that should be king - promoting 2 → 4`
+        );
+        this.gameState[7][col] = 4;
+        promotionsMade++;
+      }
+    }
+
+    if (promotionsMade > 0) {
+      console.log(
+        `✅ Fixed ${promotionsMade} existing pieces that should have been promoted`
+      );
+      console.log(`📋 Updated board state:`, JSON.stringify(this.gameState));
+    } else {
+      console.log(`✅ No existing pieces needed promotion fixes`);
+    }
   }
 
   createBoard() {
@@ -451,14 +490,40 @@ class CheckersGame {
       console.log(`Captured piece at ${capturedRow},${capturedCol}`);
     }
 
-    // Check for king promotion
+    // Check for king promotion with debugging
+    console.log(`🔍 KING PROMOTION CHECK:`);
+    console.log(`  Piece type: ${pieceType} (${typeof pieceType})`);
+    console.log(`  Moving to row: ${toRow}`);
+    console.log(
+      `  Red promotion: pieceType(${pieceType}) === 1? ${
+        pieceType === 1
+      }, toRow(${toRow}) === 0? ${toRow === 0}`
+    );
+    console.log(
+      `  Black promotion: pieceType(${pieceType}) === 2? ${
+        pieceType === 2
+      }, toRow(${toRow}) === 7? ${toRow === 7}`
+    );
+
     if (pieceType === 1 && toRow === 0) {
-      // Red reaches top
+      console.log(`🔴 PROMOTING RED PIECE TO KING! (1 → 3)`);
       this.gameState[toRow][toCol] = 3;
+      console.log(
+        `  Result: gameState[${toRow}][${toCol}] = ${this.gameState[toRow][toCol]}`
+      );
     } else if (pieceType === 2 && toRow === 7) {
-      // Black reaches bottom
+      console.log(`⚫ PROMOTING BLACK PIECE TO KING! (2 → 4)`);
       this.gameState[toRow][toCol] = 4;
+      console.log(
+        `  Result: gameState[${toRow}][${toCol}] = ${this.gameState[toRow][toCol]}`
+      );
+    } else {
+      console.log(`❌ No promotion needed/triggered`);
     }
+    console.log(
+      `📋 Board state after promotion check:`,
+      JSON.stringify(this.gameState)
+    );
 
     // Recreate the board to reflect changes
     this.createBoard();
