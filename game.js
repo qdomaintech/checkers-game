@@ -16,20 +16,20 @@ class CheckersGame {
       .fill()
       .map(() => Array(8).fill(0));
 
-    // Place red pieces (top 3 rows, only on dark squares)
+    // Place black pieces (top 3 rows, only on dark squares)
     for (let row = 0; row < 3; row++) {
       for (let col = 0; col < 8; col++) {
         if ((row + col) % 2 === 1) {
-          state[row][col] = 1; // red piece
+          state[row][col] = 2; // black piece
         }
       }
     }
 
-    // Place black pieces (bottom 3 rows, only on dark squares)
+    // Place red pieces (bottom 3 rows, only on dark squares)
     for (let row = 5; row < 8; row++) {
       for (let col = 0; col < 8; col++) {
         if ((row + col) % 2 === 1) {
-          state[row][col] = 2; // black piece
+          state[row][col] = 1; // red piece
         }
       }
     }
@@ -309,14 +309,14 @@ class CheckersGame {
       ]; // All diagonal directions
     } else if (isRed) {
       directions = [
-        [1, -1],
-        [1, 1],
-      ]; // Red moves down (toward row 7)
-    } else {
-      directions = [
         [-1, -1],
         [-1, 1],
-      ]; // Black moves up (toward row 0)
+      ]; // Red moves up (toward row 0)
+    } else {
+      directions = [
+        [1, -1],
+        [1, 1],
+      ]; // Black moves down (toward row 7)
     }
 
     // If captures are available, only show capture moves
@@ -414,8 +414,8 @@ class CheckersGame {
 
     // Check direction restrictions for non-kings
     if (!isKing) {
-      if (isRed && toRow <= fromRow) return false; // Red moves down (toward row 7)
-      if (!isRed && toRow >= fromRow) return false; // Black moves up (toward row 0)
+      if (isRed && toRow >= fromRow) return false; // Red moves up (toward row 0)
+      if (!isRed && toRow <= fromRow) return false; // Black moves down (toward row 7)
     }
 
     // For jump moves (2 squares), check if jumping over opponent
@@ -452,11 +452,11 @@ class CheckersGame {
     }
 
     // Check for king promotion
-    if (pieceType === 1 && toRow === 7) {
-      // Red reaches bottom
+    if (pieceType === 1 && toRow === 0) {
+      // Red reaches top
       this.gameState[toRow][toCol] = 3;
-    } else if (pieceType === 2 && toRow === 0) {
-      // Black reaches top
+    } else if (pieceType === 2 && toRow === 7) {
+      // Black reaches bottom
       this.gameState[toRow][toCol] = 4;
     }
 
@@ -562,14 +562,14 @@ class CheckersGame {
       ];
     } else if (isRed) {
       directions = [
-        [2, -2],
-        [2, 2],
-      ]; // Red moves down (toward row 7)
-    } else {
-      directions = [
         [-2, -2],
         [-2, 2],
-      ]; // Black moves up (toward row 0)
+      ]; // Red moves up (toward row 0)
+    } else {
+      directions = [
+        [2, -2],
+        [2, 2],
+      ]; // Black moves down (toward row 7)
     }
 
     // Check each direction for valid jumps
@@ -644,14 +644,14 @@ class CheckersGame {
       ];
     } else if (isRed) {
       directions = [
-        [2, -2],
-        [2, 2],
-      ]; // Red moves down (toward row 7)
-    } else {
-      directions = [
         [-2, -2],
         [-2, 2],
-      ]; // Black moves up (toward row 0)
+      ]; // Red moves up (toward row 0)
+    } else {
+      directions = [
+        [2, -2],
+        [2, 2],
+      ]; // Black moves down (toward row 7)
     }
 
     // Check each direction for valid captures
