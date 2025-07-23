@@ -98,6 +98,7 @@ class CheckersGame {
     });
 
     this.createBoard();
+    this.setBoardOrientation(); // Add board rotation based on player color
     this.updateCurrentPlayerDisplay();
   }
 
@@ -144,6 +145,9 @@ class CheckersGame {
     piece.classList.add("piece");
     piece.dataset.row = row;
     piece.dataset.col = col;
+
+    // Apply counter-rotation to keep pieces upright
+    piece.style.transform = "var(--piece-rotation, rotate(0deg))";
 
     switch (type) {
       case 1:
@@ -578,6 +582,25 @@ class CheckersGame {
     this.gameState = this.initializeGameState();
     this.createBoard();
     this.updateCurrentPlayerDisplay();
+  }
+
+  setBoardOrientation() {
+    const board = document.getElementById("checkers-board");
+
+    if (this.myColor === "black") {
+      // Rotate board 180 degrees for black player
+      board.style.transform = "rotate(180deg)";
+      // Set CSS variable for piece counter-rotation
+      board.style.setProperty("--piece-rotation", "rotate(180deg)");
+
+      console.log("Board rotated for black player perspective");
+    } else {
+      // Normal orientation for red player
+      board.style.transform = "rotate(0deg)";
+      board.style.setProperty("--piece-rotation", "rotate(0deg)");
+
+      console.log("Board in normal orientation for red player");
+    }
   }
 }
 
