@@ -476,10 +476,12 @@ class CheckersGame {
   }
 
   makeMove(fromRow, fromCol, toRow, toCol) {
+    // Store the original piece type before moving
+    const originalPieceType = Number(this.gameState[fromRow][fromCol]);
+
     // Move piece in game state
-    const pieceType = this.gameState[fromRow][fromCol];
     this.gameState[fromRow][fromCol] = 0;
-    this.gameState[toRow][toCol] = pieceType;
+    this.gameState[toRow][toCol] = originalPieceType;
 
     // Handle captures for jumps
     const rowDiff = Math.abs(toRow - fromRow);
@@ -490,44 +492,44 @@ class CheckersGame {
       console.log(`Captured piece at ${capturedRow},${capturedCol}`);
     }
 
-    // Check for king promotion with debugging
-    // FORCE TYPE CONVERSION to ensure proper comparison
-    pieceType = Number(pieceType);
-    toRow = Number(toRow);
-    toCol = Number(toCol);
+    // Convert parameters to numbers for safe comparison
+    const targetRow = Number(toRow);
+    const targetCol = Number(toCol);
 
-    console.log(`🔍 KING PROMOTION CHECK (after type conversion):`);
-    console.log(`  Piece type: ${pieceType} (${typeof pieceType})`);
-    console.log(`  Moving to row: ${toRow}`);
+    console.log(`🔍 KING PROMOTION CHECK:`);
     console.log(
-      `  Red promotion: pieceType(${pieceType}) === 1? ${
-        pieceType === 1
-      }, toRow(${toRow}) === 0? ${toRow === 0}`
+      `  Original piece type: ${originalPieceType} (${typeof originalPieceType})`
+    );
+    console.log(`  Moving to row: ${targetRow}`);
+    console.log(
+      `  Red promotion: pieceType(${originalPieceType}) === 1? ${
+        originalPieceType === 1
+      }, targetRow(${targetRow}) === 0? ${targetRow === 0}`
     );
     console.log(
-      `  Black promotion: pieceType(${pieceType}) === 2? ${
-        pieceType === 2
-      }, toRow(${toRow}) === 7? ${toRow === 7}`
+      `  Black promotion: pieceType(${originalPieceType}) === 2? ${
+        originalPieceType === 2
+      }, targetRow(${targetRow}) === 7? ${targetRow === 7}`
     );
 
     // Red pieces (1) promote to red kings (3) when reaching row 0 (top)
-    if (pieceType === 1 && toRow === 0) {
+    if (originalPieceType === 1 && targetRow === 0) {
       console.log(`🔴 PROMOTING RED PIECE TO KING! (1 → 3)`);
-      this.gameState[toRow][toCol] = 3;
+      this.gameState[targetRow][targetCol] = 3;
       console.log(
-        `  ✅ Promotion successful: gameState[${toRow}][${toCol}] = ${this.gameState[toRow][toCol]}`
+        `  ✅ Promotion successful: gameState[${targetRow}][${targetCol}] = ${this.gameState[targetRow][targetCol]}`
       );
     }
     // Black pieces (2) promote to black kings (4) when reaching row 7 (bottom)
-    else if (pieceType === 2 && toRow === 7) {
+    else if (originalPieceType === 2 && targetRow === 7) {
       console.log(`⚫ PROMOTING BLACK PIECE TO KING! (2 → 4)`);
-      this.gameState[toRow][toCol] = 4;
+      this.gameState[targetRow][targetCol] = 4;
       console.log(
-        `  ✅ Promotion successful: gameState[${toRow}][${toCol}] = ${this.gameState[toRow][toCol]}`
+        `  ✅ Promotion successful: gameState[${targetRow}][${targetCol}] = ${this.gameState[targetRow][targetCol]}`
       );
     } else {
       console.log(
-        `❌ No promotion: pieceType=${pieceType}, toRow=${toRow} (not promotion conditions)`
+        `❌ No promotion: pieceType=${originalPieceType}, targetRow=${targetRow} (not promotion conditions)`
       );
     }
     console.log(
