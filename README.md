@@ -27,6 +27,7 @@ This project demonstrates a hybrid architecture where:
 
 - **Game URL**: https://checkers-game-two.vercel.app
 - **Bubble Integration**: Embedded via iframe in Bubble app
+- **Deployment**: Pure JavaScript - ready for immediate Git deployment
 
 ## ✅ Completed Features
 
@@ -144,10 +145,11 @@ Game {
 
 ### Frontend (Vercel)
 
-- **Framework**: Vanilla HTML/CSS/JavaScript
+- **Framework**: Vanilla HTML/CSS/JavaScript (No server-side dependencies)
+- **Logic**: Pure JavaScript - all game mechanics implemented client-side
 - **Styling**: CSS Grid, Gradients, CSS Variables
 - **Communication**: postMessage API, Fetch API
-- **Deployment**: Auto-deploy from GitHub
+- **Deployment**: Auto-deploy from GitHub (no build process required)
 
 ### Backend (Bubble)
 
@@ -173,6 +175,8 @@ Game {
 - ✅ Turn logic with consecutive jumps
 - ✅ Visual feedback and UI polish
 - ✅ Board rotation for Player 2 perspective
+- ✅ Jump/capture mechanics with forced capture rule
+- ✅ Mandatory jump enforcement
 
 ### In Progress
 
@@ -181,8 +185,6 @@ Game {
 
 ### Planned
 
-- ⏳ Jump/capture mechanics
-- ⏳ Mandatory jump enforcement
 - ⏳ Win condition detection
 - ⏳ Game lobby system
 - ⏳ Player matchmaking
@@ -200,11 +202,22 @@ Game {
 2. Send board state via postMessage
 3. Test moves and database saving
 
-### Local Development
+### Development & Deployment
+
+**JavaScript-Only Architecture**: This game uses pure client-side JavaScript with no server-side dependencies, build tools, or compilation steps.
+
+#### Git-Based Deployment
 
 1. Clone repository: `git clone https://github.com/qdomaintech/checkers-game.git`
-2. Open `index.html` in browser
-3. Game runs standalone (no Bubble integration)
+2. Make changes to `game.js`, `index.html`, or `style.css`
+3. Commit and push to GitHub
+4. Vercel automatically deploys from Git (no build process)
+
+#### Local Testing (Optional)
+
+- Simply open `index.html` directly in browser
+- Game runs standalone (no Bubble integration)
+- No localhost server required
 
 ## 📁 Project Structure
 
@@ -212,10 +225,12 @@ Game {
 checkers-game/
 ├── index.html          # Main game page
 ├── style.css           # Game styling and layout
-├── game.js             # Game logic and communication
+├── game.js             # Pure JavaScript game logic (no dependencies)
 ├── .gitignore          # Ignore environment files
 └── README.md           # This documentation
 ```
+
+**Note**: All game logic is implemented in vanilla JavaScript with no external libraries, frameworks, or build tools required.
 
 ## 🔧 Configuration
 

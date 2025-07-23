@@ -176,7 +176,22 @@ class CheckersGame {
 
     // If clicking on a piece of the current player
     if (piece && this.isPieceOwnedByCurrentPlayer(piece)) {
-      this.selectPiece(piece, row, col);
+      // Check if captures are available
+      const capturesAvailable = this.hasAvailableCaptures(this.currentPlayer);
+
+      if (capturesAvailable) {
+        // Only allow selection of pieces that can capture
+        const pieceType = this.gameState[row][col];
+        if (this.pieceHasCaptures(row, col, pieceType)) {
+          this.selectPiece(piece, row, col);
+        } else {
+          // Show message that capture is mandatory
+          this.showCaptureMessage();
+        }
+      } else {
+        // No captures available, allow normal selection
+        this.selectPiece(piece, row, col);
+      }
     }
     // If a piece is selected and clicking on an empty square
     else if (this.selectedPiece && !piece) {
@@ -227,6 +242,7 @@ class CheckersGame {
     const pieceType = this.gameState[row][col];
     const isKing = pieceType === 3 || pieceType === 4;
     const isRed = pieceType === 1 || pieceType === 3;
+    const capturesAvailable = this.hasAvailableCaptures(this.currentPlayer);
 
     // Define movement directions
     let directions = [];
@@ -249,28 +265,31 @@ class CheckersGame {
       ]; // Black moves down (FIXED)
     }
 
-    // Check each direction for valid moves (1 square)
-    directions.forEach(([rowDir, colDir]) => {
-      const newRow = row + rowDir;
-      const newCol = col + colDir;
+    // If captures are available, only show capture moves
+    if (!capturesAvailable) {
+      // Check each direction for valid moves (1 square) - only when no captures available
+      directions.forEach(([rowDir, colDir]) => {
+        const newRow = row + rowDir;
+        const newCol = col + colDir;
 
-      console.log(`Checking move to ${newRow},${newCol}`);
+        console.log(`Checking move to ${newRow},${newCol}`);
 
-      if (this.isValidPosition(newRow, newCol)) {
-        console.log(
-          `Position valid. Cell value: ${
-            this.gameState[newRow][newCol]
-          } (type: ${typeof this.gameState[newRow][newCol]})`
-        );
+        if (this.isValidPosition(newRow, newCol)) {
+          console.log(
+            `Position valid. Cell value: ${
+              this.gameState[newRow][newCol]
+            } (type: ${typeof this.gameState[newRow][newCol]})`
+          );
 
-        if (this.gameState[newRow][newCol] === 0) {
-          console.log(`Adding highlight to ${newRow},${newCol}`);
-          this.highlightSquare(newRow, newCol, "possible-move");
+          if (this.gameState[newRow][newCol] === 0) {
+            console.log(`Adding highlight to ${newRow},${newCol}`);
+            this.highlightSquare(newRow, newCol, "possible-move");
+          }
         }
-      }
-    });
+      });
+    }
 
-    // Check for jump moves (2 squares)
+    // Always check for jump moves (2 squares)
     directions.forEach(([rowDir, colDir]) => {
       const jumpRow = row + rowDir * 2;
       const jumpCol = col + colDir * 2;
@@ -332,6 +351,12 @@ class CheckersGame {
     const pieceType = this.gameState[fromRow][fromCol];
     const isKing = pieceType === 3 || pieceType === 4;
     const isRed = pieceType === 1 || pieceType === 3;
+
+    // Check if captures are available - if so, only allow capture moves
+    const capturesAvailable = this.hasAvailableCaptures(this.currentPlayer);
+    if (capturesAvailable && rowDiff === 1) {
+      return false; // Must capture when captures are available
+    }
 
     // Check direction restrictions for non-kings
     if (!isKing) {
@@ -400,9 +425,28 @@ class CheckersGame {
     const display = document.getElementById("current-player");
     if (display) {
       const playerName = this.currentPlayer === "red" ? "Uotoo" : "Cazoo";
-      display.textContent = `${playerName}'s turn`;
+      const capturesAvailable = this.hasAvailableCaptures(this.currentPlayer);
+      const turnText = capturesAvailable
+        ? `${playerName}'s turn - Must capture!`
+        : `${playerName}'s turn`;
+
+      display.textContent = turnText;
       display.style.color =
         this.currentPlayer === "red" ? "#ff6b6b" : "#b0d0d0";
+    }
+  }
+
+  showCaptureMessage() {
+    const display = document.getElementById("current-player");
+    if (display) {
+      const originalText = display.textContent;
+      display.textContent = "You must capture! Select a piece that can jump.";
+      display.style.color = "#ff4444";
+
+      // Reset after 2 seconds
+      setTimeout(() => {
+        this.updateCurrentPlayerDisplay();
+      }, 2000);
     }
   }
 
@@ -500,6 +544,78 @@ class CheckersGame {
     } else {
       return isRed; // Black player's opponent is red
     }
+  }
+
+  // Check if any captures are available for the current player
+  hasAvailableCaptures(player) {
+    for (let row = 0; row < 8; row++) {
+      for (let col = 0; col < 8; col++) {
+        const pieceType = this.gameState[row][col];
+
+        // Skip if not current player's piece
+        if (pieceType === 0) continue;
+
+        const isRed = pieceType === 1 || pieceType === 3;
+        const isPlayerPiece =
+          (player === "red" && isRed) || (player === "black" && !isRed);
+
+        if (!isPlayerPiece) continue;
+
+        // Check if this piece has any captures available
+        if (this.pieceHasCaptures(row, col, pieceType)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  // Check if a specific piece has captures available
+  pieceHasCaptures(row, col, pieceType) {
+    const isKing = pieceType === 3 || pieceType === 4;
+    const isRed = pieceType === 1 || pieceType === 3;
+
+    // Define jump directions (2 squares)
+    let directions = [];
+    if (isKing) {
+      directions = [
+        [-2, -2],
+        [-2, 2],
+        [2, -2],
+        [2, 2],
+      ];
+    } else if (isRed) {
+      directions = [
+        [-2, -2],
+        [-2, 2],
+      ]; // Red moves up
+    } else {
+      directions = [
+        [2, -2],
+        [2, 2],
+      ]; // Black moves down
+    }
+
+    // Check each direction for valid captures
+    for (let [rowDir, colDir] of directions) {
+      const jumpToRow = row + rowDir;
+      const jumpToCol = col + colDir;
+      const middleRow = row + rowDir / 2;
+      const middleCol = col + colDir / 2;
+
+      if (
+        this.isValidPosition(jumpToRow, jumpToCol) &&
+        this.gameState[jumpToRow][jumpToCol] === 0 && // Target square empty
+        this.gameState[middleRow][middleCol] !== 0 && // Middle has piece
+        this.isOpponentPiece(
+          this.gameState[middleRow][middleCol],
+          this.currentPlayer
+        )
+      ) {
+        return true; // Capture available
+      }
+    }
+    return false;
   }
 
   sendMoveToParent(fromRow, fromCol, toRow, toCol, player) {
