@@ -37,7 +37,14 @@ class CheckersGame {
     return state;
   }
 
-  setBoardState(boardArray, currentPlayerId, myUserId, gameId, apiEndpoint) {
+  setBoardState(
+    boardArray,
+    currentPlayerId,
+    myUserId,
+    gameId,
+    apiEndpoint,
+    playerIds
+  ) {
     console.log("Received raw boardArray:", boardArray);
 
     // Convert all values to numbers to ensure proper type checking
@@ -48,8 +55,48 @@ class CheckersGame {
 
     this.gameId = gameId;
     this.apiEndpoint = apiEndpoint;
+    this.myUserId = myUserId;
+
+    // Parse combined player IDs from param5
+    if (playerIds && playerIds.includes(",")) {
+      const [redPlayerId, blackPlayerId] = playerIds.split(",");
+      this.redPlayerId = redPlayerId.trim();
+      this.blackPlayerId = blackPlayerId.trim();
+    } else {
+      console.error("Invalid playerIds format:", playerIds);
+      return;
+    }
+
+    // Determine my color based on explicit assignments
+    if (myUserId === this.redPlayerId) {
+      this.myColor = "red";
+      this.opponentPlayerId = this.blackPlayerId;
+    } else if (myUserId === this.blackPlayerId) {
+      this.myColor = "black";
+      this.opponentPlayerId = this.redPlayerId;
+    } else {
+      console.error("User not assigned to either color!", {
+        myUserId,
+        redPlayerId: this.redPlayerId,
+        blackPlayerId: this.blackPlayerId,
+      });
+      return;
+    }
+
+    this.opponentColor = this.myColor === "red" ? "black" : "red";
+
+    // Set turn state
     this.isMyTurn = currentPlayerId === myUserId;
-    this.currentPlayer = this.isMyTurn ? "red" : "black"; // Adjust based on your logic
+    this.currentPlayer = currentPlayerId === this.redPlayerId ? "red" : "black";
+
+    console.log("Color assignments:", {
+      myUserId: this.myUserId,
+      myColor: this.myColor,
+      redPlayer: this.redPlayerId,
+      blackPlayer: this.blackPlayerId,
+      isMyTurn: this.isMyTurn,
+    });
+
     this.createBoard();
     this.updateCurrentPlayerDisplay();
   }
@@ -193,12 +240,12 @@ class CheckersGame {
       ]; // Red moves up
     } else {
       directions = [
-        [-1, -1],
-        [-1, 1],
-      ]; // Black moves up
+        [1, -1],
+        [1, 1],
+      ]; // Black moves down (FIXED)
     }
 
-    // Check each direction for valid moves
+    // Check each direction for valid moves (1 square)
     directions.forEach(([rowDir, colDir]) => {
       const newRow = row + rowDir;
       const newCol = col + colDir;
@@ -216,6 +263,27 @@ class CheckersGame {
           console.log(`Adding highlight to ${newRow},${newCol}`);
           this.highlightSquare(newRow, newCol, "possible-move");
         }
+      }
+    });
+
+    // Check for jump moves (2 squares)
+    directions.forEach(([rowDir, colDir]) => {
+      const jumpRow = row + rowDir * 2;
+      const jumpCol = col + colDir * 2;
+      const middleRow = row + rowDir;
+      const middleCol = col + colDir;
+
+      if (
+        this.isValidPosition(jumpRow, jumpCol) &&
+        this.gameState[jumpRow][jumpCol] === 0 && // Target square empty
+        this.gameState[middleRow][middleCol] !== 0 && // Middle has piece
+        this.isOpponentPiece(
+          this.gameState[middleRow][middleCol],
+          this.currentPlayer
+        )
+      ) {
+        console.log(`Adding jump highlight to ${jumpRow},${jumpCol}`);
+        this.highlightSquare(jumpRow, jumpCol, "possible-move");
       }
     });
   }
@@ -255,7 +323,7 @@ class CheckersGame {
     const rowDiff = Math.abs(toRow - fromRow);
     const colDiff = Math.abs(toCol - fromCol);
 
-    if (rowDiff !== 1 || colDiff !== 1) return false;
+    if (rowDiff !== colDiff || (rowDiff !== 1 && rowDiff !== 2)) return false;
 
     const pieceType = this.gameState[fromRow][fromCol];
     const isKing = pieceType === 3 || pieceType === 4;
@@ -264,7 +332,22 @@ class CheckersGame {
     // Check direction restrictions for non-kings
     if (!isKing) {
       if (isRed && toRow >= fromRow) return false; // Red moves up
-      if (!isRed && toRow >= fromRow) return false; // Black moves up
+      if (!isRed && toRow <= fromRow) return false; // Black moves down (FIXED)
+    }
+
+    // For jump moves (2 squares), check if jumping over opponent
+    if (rowDiff === 2) {
+      const middleRow = fromRow + (toRow - fromRow) / 2;
+      const middleCol = fromCol + (toCol - fromCol) / 2;
+
+      // Must jump over opponent piece
+      const middlePiece = this.gameState[middleRow][middleCol];
+      if (
+        middlePiece === 0 ||
+        !this.isOpponentPiece(middlePiece, this.currentPlayer)
+      ) {
+        return false;
+      }
     }
 
     return true;
@@ -275,6 +358,15 @@ class CheckersGame {
     const pieceType = this.gameState[fromRow][fromCol];
     this.gameState[fromRow][fromCol] = 0;
     this.gameState[toRow][toCol] = pieceType;
+
+    // Handle captures for jumps
+    const rowDiff = Math.abs(toRow - fromRow);
+    if (rowDiff === 2) {
+      const capturedRow = fromRow + (toRow - fromRow) / 2;
+      const capturedCol = fromCol + (toCol - fromCol) / 2;
+      this.gameState[capturedRow][capturedCol] = 0; // Remove captured piece
+      console.log(`Captured piece at ${capturedRow},${capturedCol}`);
+    }
 
     // Check for king promotion
     if (pieceType === 1 && toRow === 7) {
@@ -333,10 +425,9 @@ class CheckersGame {
     }
   }
 
-
   getNextPlayer(fromRow, fromCol, toRow, toCol, currentPlayer, gameState) {
     const rowDiff = Math.abs(toRow - fromRow);
-    
+
     // If it was a jump (moved 2 squares), check for additional jumps
     if (rowDiff === 2) {
       // Check if the player who just jumped has more jumps available
@@ -344,7 +435,7 @@ class CheckersGame {
         return currentPlayer; // Same player continues
       }
     }
-    
+
     // Normal move or no more jumps available
     return currentPlayer === "red" ? "black" : "red";
   }
@@ -353,39 +444,53 @@ class CheckersGame {
     const pieceType = gameState[row][col];
     const isKing = pieceType === 3 || pieceType === 4;
     const isRed = pieceType === 1 || pieceType === 3;
-    
+
     // Define jump directions (2 squares)
     let directions = [];
     if (isKing) {
-      directions = [[-2, -2], [-2, 2], [2, -2], [2, 2]];
+      directions = [
+        [-2, -2],
+        [-2, 2],
+        [2, -2],
+        [2, 2],
+      ];
     } else if (isRed) {
-      directions = [[-2, -2], [-2, 2]]; // Red moves up
+      directions = [
+        [-2, -2],
+        [-2, 2],
+      ]; // Red moves up
     } else {
-      directions = [[2, -2], [2, 2]]; // Black moves down
+      directions = [
+        [2, -2],
+        [2, 2],
+      ]; // Black moves down
     }
-    
+
     // Check each direction for valid jumps
     for (let [rowDir, colDir] of directions) {
       const jumpToRow = row + rowDir;
       const jumpToCol = col + colDir;
-      const middleRow = row + rowDir/2;
-      const middleCol = col + colDir/2;
-      
-      if (this.isValidPosition(jumpToRow, jumpToCol) && 
-          gameState[jumpToRow][jumpToCol] === 0 && // Target square empty
-          gameState[middleRow][middleCol] !== 0 && // Middle has piece
-          this.isOpponentPiece(gameState[middleRow][middleCol], player)) { // Middle is opponent
+      const middleRow = row + rowDir / 2;
+      const middleCol = col + colDir / 2;
+
+      if (
+        this.isValidPosition(jumpToRow, jumpToCol) &&
+        gameState[jumpToRow][jumpToCol] === 0 && // Target square empty
+        gameState[middleRow][middleCol] !== 0 && // Middle has piece
+        this.isOpponentPiece(gameState[middleRow][middleCol], player)
+      ) {
+        // Middle is opponent
         return true; // Additional jump available
       }
     }
-    
+
     return false; // No additional jumps
   }
 
   isOpponentPiece(pieceType, currentPlayer) {
     const isRed = pieceType === 1 || pieceType === 3;
     const isBlack = pieceType === 2 || pieceType === 4;
-    
+
     if (currentPlayer === "red") {
       return isBlack; // Red player's opponent is black
     } else {
@@ -393,14 +498,26 @@ class CheckersGame {
     }
   }
 
-
   sendMoveToParent(fromRow, fromCol, toRow, toCol, player) {
+    const nextPlayerColor = this.getNextPlayer(
+      fromRow,
+      fromCol,
+      toRow,
+      toCol,
+      player,
+      this.gameState
+    );
+
+    // Use explicit color assignments
+    const nextPlayerId =
+      nextPlayerColor === "red" ? this.redPlayerId : this.blackPlayerId;
+
     // Send move data to Bubble via API endpoint
     if (this.gameId && this.apiEndpoint) {
       const moveData = {
         game_id: this.gameId,
         board_state: JSON.stringify(this.gameState),
-        current_player_id: this.getNextPlayer(fromRow, fromCol, toRow, toCol, player, this.gameState) === "red" ? "red_player_id" : "black_player_id",
+        current_player_id: nextPlayerId, // Fixed to use correct player IDs
         from_row: fromRow,
         from_col: fromCol,
         to_row: toRow,
@@ -444,7 +561,8 @@ class CheckersGame {
         event.data.currentPlayerId,
         event.data.myUserId,
         event.data.gameId,
-        event.data.apiEndpoint
+        event.data.apiEndpoint,
+        event.data.playerIds // Combined player IDs string
       );
     } else if (event.data.type === "reset-game") {
       this.resetGame();
