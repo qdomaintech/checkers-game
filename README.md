@@ -39,8 +39,13 @@ This project demonstrates a hybrid architecture where:
 - [x] Move highlighting (golden squares for valid moves)
 - [x] Must-capture piece highlighting (pulsing red glow for mandatory captures)
 - [x] King promotion when pieces reach opposite end (recently fixed)
+- [x] **Flying King Mechanics** - Kings can move multiple squares diagonally
+- [x] **Long-Distance King Captures** - Kings can capture at any distance along diagonals
+- [x] **Strategic King Landing** - Kings can land anywhere beyond captured pieces
+- [x] **Multi-Capture Sequences** - Kings can make consecutive captures in one turn
 - [x] Turn-based gameplay
 - [x] Proper checkers turn logic with consecutive jump handling
+- [x] **Win Condition Detection** - Game automatically detects wins and losses
 
 ### Visual Design
 
@@ -164,6 +169,46 @@ When mandatory captures are available, the game automatically highlights pieces 
 - **Performance**: Lightweight implementation with minimal DOM manipulation
 - **Integration**: Seamlessly integrated into existing board creation and turn management
 
+## 👑 Flying King Mechanics Feature
+
+### International Checkers Rules
+
+This game now implements **authentic flying king mechanics** following international checkers standards, transforming kings into powerful strategic pieces.
+
+### King Abilities
+
+- **🚁 Multi-Square Flight**: Kings can move any number of squares diagonally in all directions
+- **🎯 Long-Distance Captures**: Kings can capture opponent pieces at any distance along diagonal paths
+- **📍 Strategic Landing**: Kings can land anywhere beyond captured pieces (not just immediately after)
+- **⚡ Multi-Capture Sequences**: Kings can make consecutive captures in one turn until no more captures are available
+
+### User Experience
+
+**Enhanced Visual Feedback**: Kings show multiple movement options and capture landing positions, giving players strategic choices for positioning and multi-capture combinations.
+
+**Strategic Gameplay**: Flying kings create deep tactical opportunities with their ability to control entire board diagonals and execute complex capture sequences.
+
+### Example King Power
+
+```
+Before: King moves 1 square like regular pieces
+After:  King flies across board, captures multiple pieces strategically
+
+K . . b . . . .    →    . . . . . . . K
+. . . . . . . .          . . . . . . . .
+. . . . . b . .          . . . . . . . .
+. . . . . . . .          . . . . . . . .
+
+King captured 2 pieces and landed strategically!
+```
+
+### Technical Implementation
+
+- **Enhanced Movement Validation**: `isValidKingMove()` validates paths at any distance
+- **Capture Detection**: `findKingCaptures()` scans entire diagonals for opportunities
+- **Multi-Capture Logic**: `hasAdditionalKingCaptures()` enables consecutive captures
+- **Strategic Positioning**: Kings can choose optimal landing positions after captures
+
 ## 🛠️ Technical Implementation
 
 ### Frontend (Vercel)
@@ -200,6 +245,10 @@ When mandatory captures are available, the game automatically highlights pieces 
 - ✅ Board rotation for Player 2 perspective
 - ✅ Jump/capture mechanics with forced capture rule
 - ✅ Mandatory jump enforcement
+- ✅ **Flying king mechanics** with multi-square diagonal movement
+- ✅ **Long-distance king captures** and strategic positioning
+- ✅ **Multi-capture sequences** for consecutive king captures
+- ✅ **Win condition detection** and game end logic
 
 ### In Progress
 
@@ -208,7 +257,6 @@ When mandatory captures are available, the game automatically highlights pieces 
 
 ### Planned
 
-- ⏳ Win condition detection
 - ⏳ Game lobby system
 - ⏳ Player matchmaking
 
@@ -290,6 +338,43 @@ checkers-game/
 
 ## 🔧 Recent Updates
 
+### Flying King Implementation (December 2024)
+
+**Major Feature**: Implemented authentic international checkers flying king mechanics to transform game strategy and follow proper checkers rules.
+
+**Features Added**:
+
+- ✅ **Multi-Square Diagonal Movement**: Kings can now fly any number of squares diagonally in all directions
+- ✅ **Long-Distance Captures**: Kings can capture opponent pieces at any distance along diagonal paths
+- ✅ **Strategic Landing Positions**: Kings can land anywhere beyond captured pieces (not just immediately after)
+- ✅ **Multi-Capture Sequences**: Kings can make consecutive captures in a single turn until no more captures are available
+- ✅ **Enhanced Move Validation**: Comprehensive path checking and capture validation for flying movements
+- ✅ **Win Condition Detection**: Automatic game end detection when players have no pieces or valid moves
+
+**Technical Implementation**:
+
+- 🔧 **Enhanced `highlightPossibleMoves()`**: Shows all possible king flight paths and capture landing options
+- 🔧 **New `findKingCaptures()`**: Scans entire diagonals for capture opportunities at any distance
+- 🔧 **Updated `isValidMove()`**: Validates flying king moves with proper path checking
+- 🔧 **Fixed `makeMove()`**: Kings can now land strategically anywhere beyond captured pieces
+- 🔧 **Added `hasAdditionalKingCaptures()`**: Enables multi-capture sequences for flying kings
+- 🔧 **Enhanced `getNextPlayer()`**: Properly handles turn continuation for king multi-captures
+
+**Strategic Impact**:
+
+- 🎯 **Powerful Kings**: Flying kings are now formidable pieces that can control entire board diagonals
+- 🎯 **Strategic Depth**: Players can make complex multi-capture combinations and strategic positioning moves
+- 🎯 **Authentic Rules**: Game now follows international checkers flying king rules for competitive play
+- 🎯 **Enhanced Gameplay**: Kings provide the strategic superiority they should have in traditional checkers
+
+**Result**:
+
+- Kings can fly multiple squares diagonally in any direction (♔ → ♔ → ♔ → ♔)
+- Long-distance captures with flexible landing positions create strategic opportunities
+- Multi-capture sequences enable powerful combination moves
+- Game automatically detects win/loss conditions for proper game endings
+- Enhanced player experience with authentic international checkers mechanics
+
 ### King Promotion Bug Fix (December 2024)
 
 **Issue**: King promotion logic had critical JavaScript errors that prevented pieces from being promoted to kings when reaching the opposite end of the board.
@@ -333,4 +418,4 @@ For questions about the architecture or implementation, refer to the commit hist
 **Last Updated**: December 2024  
 **Status**: Active Development  
 **Demo**: https://checkers-game-two.vercel.app  
-**Latest Update**: King promotion bug fix - pieces now properly promote to kings with visual crown display
+**Latest Update**: Flying King Implementation - authentic international checkers with multi-square movement, long-distance captures, and strategic positioning
