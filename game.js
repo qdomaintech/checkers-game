@@ -661,17 +661,13 @@ class CheckersGame {
     // Check if it's a valid move
     if (this.isValidMove(fromRow, fromCol, toRow, toCol)) {
       const captureOccurred = this.makeMove(fromRow, fromCol, toRow, toCol);
-
-      // Only switch player if no capture occurred, or if capture occurred but no additional jumps available
-      if (
-        !captureOccurred ||
-        !this.hasAdditionalJumps(
-          toRow,
-          toCol,
-          this.currentPlayer,
-          this.gameState
-        )
-      ) {
+      
+      // If this was a capture move, check for additional jumps with the same piece
+      if (captureOccurred && this.hasAdditionalJumps(toRow, toCol, this.currentPlayer, this.gameState)) {
+        // Same player continues for chain jumping
+        // Don't switch player
+      } else {
+        // For normal moves OR completed capture sequences, always switch players
         this.switchPlayer();
       }
     }
@@ -828,7 +824,7 @@ class CheckersGame {
       // REGULAR PIECE CAPTURE: Check if there's actually a piece to capture
       const capturedRow = fromRow + (toRow - fromRow) / 2;
       const capturedCol = fromCol + (toCol - fromCol) / 2;
-      
+
       // Only capture if there's an opponent piece in the middle
       if (
         this.gameState[capturedRow][capturedCol] !== 0 &&
