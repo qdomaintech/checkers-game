@@ -661,15 +661,26 @@ class CheckersGame {
     // Check if it's a valid move
     if (this.isValidMove(fromRow, fromCol, toRow, toCol)) {
       const captureOccurred = this.makeMove(fromRow, fromCol, toRow, toCol);
-      
+
       // If this was a capture move, check for additional jumps with the same piece
-      if (captureOccurred && this.hasAdditionalJumps(toRow, toCol, this.currentPlayer, this.gameState)) {
+      if (
+        captureOccurred &&
+        this.hasAdditionalJumps(
+          toRow,
+          toCol,
+          this.currentPlayer,
+          this.gameState
+        )
+      ) {
         // Same player continues for chain jumping
         // Don't switch player
       } else {
         // For normal moves OR completed capture sequences, always switch players
         this.switchPlayer();
       }
+
+      // Recreate board AFTER turn management is complete
+      this.createBoard();
     }
 
     this.deselectPiece();
@@ -884,8 +895,6 @@ class CheckersGame {
       JSON.stringify(this.gameState)
     );
 
-    // Recreate the board to reflect changes
-    this.createBoard();
 
     // Clear opponent highlights after a move is made
     this.clearOpponentHighlights();
@@ -901,10 +910,10 @@ class CheckersGame {
 
   switchPlayer() {
     this.currentPlayer = this.currentPlayer === "red" ? "black" : "red";
-    
+
     // Update isMyTurn based on whether the new current player matches our color
     this.isMyTurn = this.currentPlayer === this.myColor;
-    
+
     this.updateCurrentPlayerDisplay();
   }
 
