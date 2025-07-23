@@ -48,6 +48,7 @@ This project demonstrates a hybrid architecture where:
 - [x] Responsive design (mobile and desktop)
 - [x] Player information panel with game stats
 - [x] Move history logging
+- [x] Board rotation for optimal player perspective (Player 2 sees their pieces at bottom)
 
 ### Backend Integration
 
@@ -171,6 +172,7 @@ Game {
 - ✅ Move saving to database
 - ✅ Turn logic with consecutive jumps
 - ✅ Visual feedback and UI polish
+- ✅ Board rotation for Player 2 perspective
 
 ### In Progress
 
