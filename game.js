@@ -138,6 +138,54 @@ class CheckersGame {
         this.board.appendChild(square);
       }
     }
+
+    // Highlight pieces that must capture after board is created
+    this.highlightMustCapturePieces();
+  }
+
+  // Add new method to highlight pieces that must capture
+  highlightMustCapturePieces() {
+    // Only highlight if it's the current player's turn and captures are available
+    if (!this.isMyTurn || !this.hasAvailableCaptures(this.currentPlayer)) {
+      return;
+    }
+
+    // Find all pieces that belong to current player and can capture
+    for (let row = 0; row < 8; row++) {
+      for (let col = 0; col < 8; col++) {
+        const pieceType = this.gameState[row][col];
+
+        // Skip empty squares
+        if (pieceType === 0) continue;
+
+        // Check if piece belongs to current player
+        const isRed = pieceType === 1 || pieceType === 3;
+        const isPlayerPiece =
+          (this.currentPlayer === "red" && isRed) ||
+          (this.currentPlayer === "black" && !isRed);
+
+        if (!isPlayerPiece) continue;
+
+        // Check if this piece has captures available
+        if (this.pieceHasCaptures(row, col, pieceType)) {
+          // Find the piece element and add must-capture class
+          const square = document.querySelector(
+            `[data-row="${row}"][data-col="${col}"]`
+          );
+          const piece = square?.querySelector(".piece");
+          if (piece) {
+            piece.classList.add("must-capture");
+          }
+        }
+      }
+    }
+  }
+
+  // Clear must-capture highlights
+  clearMustCaptureHighlights() {
+    document.querySelectorAll(".piece.must-capture").forEach((piece) => {
+      piece.classList.remove("must-capture");
+    });
   }
 
   createPiece(type, row, col) {
@@ -218,6 +266,9 @@ class CheckersGame {
     this.selectedPiece = { piece, row, col };
     piece.classList.add("selected");
 
+    // Clear must-capture highlights when a piece is selected
+    this.clearMustCaptureHighlights();
+
     // Highlight possible moves
     this.highlightPossibleMoves(row, col);
   }
@@ -232,6 +283,9 @@ class CheckersGame {
     document.querySelectorAll(".square").forEach((square) => {
       square.classList.remove("highlighted", "possible-move");
     });
+
+    // Re-highlight must-capture pieces when no piece is selected
+    this.highlightMustCapturePieces();
   }
 
   highlightPossibleMoves(row, col) {
@@ -434,6 +488,10 @@ class CheckersGame {
       display.style.color =
         this.currentPlayer === "red" ? "#ff6b6b" : "#b0d0d0";
     }
+
+    // Update must-capture highlights when turn changes
+    this.clearMustCaptureHighlights();
+    this.highlightMustCapturePieces();
   }
 
   showCaptureMessage() {

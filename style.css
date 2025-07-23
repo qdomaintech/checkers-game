@@ -120,6 +120,27 @@ body {
   z-index: 3;
 }
 
+.piece.must-capture {
+  animation: pulse-capture 1.5s infinite;
+  box-shadow: 0 0 15px rgba(255, 0, 0, 0.8), 0 4px 12px rgba(0, 0, 0, 0.4);
+  z-index: 2;
+}
+
+@keyframes pulse-capture {
+  0% {
+    box-shadow: 0 0 15px rgba(255, 0, 0, 0.8), 0 4px 12px rgba(0, 0, 0, 0.4);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(255, 0, 0, 1), 0 6px 16px rgba(0, 0, 0, 0.6);
+    transform: scale(1.05);
+  }
+  100% {
+    box-shadow: 0 0 15px rgba(255, 0, 0, 0.8), 0 4px 12px rgba(0, 0, 0, 0.4);
+    transform: scale(1);
+  }
+}
+
 /* Match Info Panel */
 .match-info-panel {
   background: #1a4040;
