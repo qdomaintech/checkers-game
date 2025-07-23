@@ -483,8 +483,20 @@ class CheckersGame {
 
     // Check if it's a valid move
     if (this.isValidMove(fromRow, fromCol, toRow, toCol)) {
-      this.makeMove(fromRow, fromCol, toRow, toCol);
-      this.switchPlayer();
+      const captureOccurred = this.makeMove(fromRow, fromCol, toRow, toCol);
+
+      // Only switch player if no capture occurred, or if capture occurred but no additional jumps available
+      if (
+        !captureOccurred ||
+        !this.hasAdditionalJumps(
+          toRow,
+          toCol,
+          this.currentPlayer,
+          this.gameState
+        )
+      ) {
+        this.switchPlayer();
+      }
     }
 
     this.deselectPiece();
@@ -612,6 +624,7 @@ class CheckersGame {
     const rowDir = Math.sign(toRow - fromRow);
     const colDir = Math.sign(toCol - fromCol);
     const distance = Math.abs(toRow - fromRow);
+    let captureOccurred = false; // Track if a capture actually happened
 
     if (isKing && distance > 1) {
       // FLYING KING CAPTURE: Remove the jumped piece anywhere along the path
@@ -627,6 +640,7 @@ class CheckersGame {
           )
         ) {
           this.gameState[checkRow][checkCol] = 0;
+          captureOccurred = true; // Mark that a capture occurred
           console.log(
             `King captured piece at ${checkRow},${checkCol}, landed at ${toRow},${toCol}`
           );
@@ -638,6 +652,7 @@ class CheckersGame {
       const capturedRow = fromRow + (toRow - fromRow) / 2;
       const capturedCol = fromCol + (toCol - fromCol) / 2;
       this.gameState[capturedRow][capturedCol] = 0;
+      captureOccurred = true; // Mark that a capture occurred
       console.log(`Regular piece captured at ${capturedRow},${capturedCol}`);
     }
 
@@ -694,6 +709,8 @@ class CheckersGame {
 
     // Send move data to parent (Bubble) if embedded
     this.sendMoveToParent(fromRow, fromCol, toRow, toCol, this.currentPlayer);
+
+    return captureOccurred; // Return whether a capture occurred
   }
 
   switchPlayer() {
@@ -998,14 +1015,17 @@ class CheckersGame {
   }
 
   sendMoveToParent(fromRow, fromCol, toRow, toCol, player) {
-    const nextPlayerColor = this.getNextPlayer(
-      fromRow,
-      fromCol,
+    // Calculate next player based on whether additional jumps are available after this move
+    const nextPlayerColor = this.hasAdditionalJumps(
       toRow,
       toCol,
       player,
       this.gameState
-    );
+    )
+      ? player // Same player continues if more jumps available
+      : player === "red"
+      ? "black"
+      : "red"; // Switch players otherwise
 
     // Use explicit color assignments
     const nextPlayerId =
