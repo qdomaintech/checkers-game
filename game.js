@@ -184,8 +184,8 @@ class CheckersGame {
 
   // Add new method to highlight pieces that must capture
   highlightMustCapturePieces() {
-    // Only highlight if captures are available
-    if (!this.hasAvailableCaptures(this.currentPlayer)) {
+    // Only highlight if it's the current player's turn and captures are available
+    if (!this.isMyTurn || !this.hasAvailableCaptures(this.currentPlayer)) {
       return;
     }
 
