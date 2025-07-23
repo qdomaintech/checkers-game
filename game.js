@@ -491,7 +491,12 @@ class CheckersGame {
     }
 
     // Check for king promotion with debugging
-    console.log(`🔍 KING PROMOTION CHECK:`);
+    // FORCE TYPE CONVERSION to ensure proper comparison
+    pieceType = Number(pieceType);
+    toRow = Number(toRow);
+    toCol = Number(toCol);
+
+    console.log(`🔍 KING PROMOTION CHECK (after type conversion):`);
     console.log(`  Piece type: ${pieceType} (${typeof pieceType})`);
     console.log(`  Moving to row: ${toRow}`);
     console.log(
@@ -505,20 +510,25 @@ class CheckersGame {
       }, toRow(${toRow}) === 7? ${toRow === 7}`
     );
 
+    // Red pieces (1) promote to red kings (3) when reaching row 0 (top)
     if (pieceType === 1 && toRow === 0) {
       console.log(`🔴 PROMOTING RED PIECE TO KING! (1 → 3)`);
       this.gameState[toRow][toCol] = 3;
       console.log(
-        `  Result: gameState[${toRow}][${toCol}] = ${this.gameState[toRow][toCol]}`
+        `  ✅ Promotion successful: gameState[${toRow}][${toCol}] = ${this.gameState[toRow][toCol]}`
       );
-    } else if (pieceType === 2 && toRow === 7) {
+    }
+    // Black pieces (2) promote to black kings (4) when reaching row 7 (bottom)
+    else if (pieceType === 2 && toRow === 7) {
       console.log(`⚫ PROMOTING BLACK PIECE TO KING! (2 → 4)`);
       this.gameState[toRow][toCol] = 4;
       console.log(
-        `  Result: gameState[${toRow}][${toCol}] = ${this.gameState[toRow][toCol]}`
+        `  ✅ Promotion successful: gameState[${toRow}][${toCol}] = ${this.gameState[toRow][toCol]}`
       );
     } else {
-      console.log(`❌ No promotion needed/triggered`);
+      console.log(
+        `❌ No promotion: pieceType=${pieceType}, toRow=${toRow} (not promotion conditions)`
+      );
     }
     console.log(
       `📋 Board state after promotion check:`,
