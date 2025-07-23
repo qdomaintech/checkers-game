@@ -901,6 +901,10 @@ class CheckersGame {
 
   switchPlayer() {
     this.currentPlayer = this.currentPlayer === "red" ? "black" : "red";
+    
+    // Update isMyTurn based on whether the new current player matches our color
+    this.isMyTurn = this.currentPlayer === this.myColor;
+    
     this.updateCurrentPlayerDisplay();
   }
 
