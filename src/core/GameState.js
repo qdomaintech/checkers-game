@@ -162,6 +162,14 @@ export class GameState {
       this.currentPlayer === PLAYER_COLORS.RED
         ? PLAYER_COLORS.BLACK
         : PLAYER_COLORS.RED;
-    this.isMyTurn = this.currentPlayer === this.myColor;
+
+    // For standalone play, always allow current player to move
+    // For multiplayer games, this will be overridden by setBoardState
+    if (!this.gameId) {
+      this.isMyTurn = true;
+      this.myColor = this.currentPlayer;
+    } else {
+      this.isMyTurn = this.currentPlayer === this.myColor;
+    }
   }
 }

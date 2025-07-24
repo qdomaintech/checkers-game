@@ -16,6 +16,11 @@ export class GameController {
 
   initialize() {
     this.gameState.initializeBoard();
+
+    // Enable standalone play (both players can play locally)
+    this.gameState.isMyTurn = true;
+    this.gameState.myColor = this.gameState.currentPlayer;
+
     this.boardRenderer.createBoard();
     this.setupEventListeners();
     this.updateCurrentPlayerDisplay();
