@@ -129,8 +129,9 @@ export class MoveValidator {
       if (isRed && rowDiff >= 0) return false; // red moves up (row decreases)
       if (!isRed && rowDiff <= 0) return false; // black moves down
 
-      // REMOVED: Force capture rule - allow normal moves even when captures exist elsewhere
-      // if (capturesAvailable && Math.abs(rowDiff) === 1) return false; // must capture
+      // RESTORE: Force capture rule - if captures are available, you must capture
+      const capturesAvailable = this.hasAvailableCaptures(this.gameState.currentPlayer);
+      if (capturesAvailable && Math.abs(rowDiff) === 1) return false; // must capture
 
       if (Math.abs(rowDiff) === 2) {
         const midRow = (fromRow + toRow) / 2;
@@ -174,9 +175,10 @@ export class MoveValidator {
       }
     }
 
-    // REMOVED: Force capture rule for kings - allow normal moves
-    // if (capturesAvailable && opponentCount === 0) return false; // must capture when any capture available
-
+    // RESTORE: Force capture rule for kings - must capture when captures available
+    const capturesAvailable = this.hasAvailableCaptures(this.gameState.currentPlayer);
+    if (capturesAvailable && opponentCount === 0) return false; // must capture when any capture available
+    
     if (opponentCount > 0 && opponentCount !== 1) return false;
 
     return true;
@@ -191,6 +193,9 @@ export class MoveValidator {
     const isKing = this.gameState.isKing(pieceType);
     const isRed =
       pieceType === PIECE_TYPES.RED || pieceType === PIECE_TYPES.RED_KING;
+
+    // Check if any captures are available for the current player
+    const capturesAvailable = this.hasAvailableCaptures(this.gameState.currentPlayer);
 
     const dirMan = isRed
       ? [
@@ -211,19 +216,20 @@ export class MoveValidator {
     const addMove = (r, c, type) => moves.push({ row: r, col: c, type });
 
     if (!isKing) {
-      // normal piece - ALLOW BOTH MOVES AND CAPTURES
+      // normal piece - respect forced captures
       for (const [dr, dc] of dirMan) {
         const newRow = row + dr;
         const newCol = col + dc;
-        // Allow normal moves regardless of captures available elsewhere
+        // Only allow normal moves if no captures are available anywhere
         if (
+          !capturesAvailable &&
           this.isValidPosition(newRow, newCol) &&
           this.gameState.board[newRow][newCol] === PIECE_TYPES.EMPTY
         ) {
           addMove(newRow, newCol, "move");
         }
 
-        // capture
+        // capture moves
         const jumpRow = row + dr * 2;
         const jumpCol = col + dc * 2;
         const midRow = row + dr;
@@ -241,7 +247,7 @@ export class MoveValidator {
         }
       }
     } else {
-      // king moves - ALLOW BOTH MOVES AND CAPTURES
+      // king moves - respect forced captures
       for (const [dr, dc] of dirKing) {
         let foundOpponent = false;
         for (let dist = 1; dist < BOARD_SIZE; dist++) {
@@ -250,8 +256,8 @@ export class MoveValidator {
           if (!this.isValidPosition(newRow, newCol)) break;
           const pieceAt = this.gameState.board[newRow][newCol];
           if (pieceAt === PIECE_TYPES.EMPTY) {
-            // Allow normal king moves regardless of captures available elsewhere
-            if (!foundOpponent) {
+            // Only allow normal king moves if no captures are available anywhere
+            if (!foundOpponent && !capturesAvailable) {
               addMove(newRow, newCol, "move");
             }
             if (foundOpponent) {
