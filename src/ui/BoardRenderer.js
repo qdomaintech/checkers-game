@@ -111,31 +111,12 @@ export class BoardRenderer {
   }
 
   highlightPossibleMoves(row, col) {
-    const pieceType = this.gameState.board[row][col];
-    const isKing = this.gameState.isKing(pieceType);
-    const isRed =
-      pieceType === PIECE_TYPES.RED || pieceType === PIECE_TYPES.RED_KING;
+    const moveValidator = new MoveValidator(this.gameState);
+    const possibleMoves = moveValidator.getPossibleMoves(row, col);
 
-    // Define movement directions
-    const directions = isKing
-      ? [
-          [-1, -1],
-          [-1, 1],
-          [1, -1],
-          [1, 1],
-        ]
-      : isRed
-      ? [
-          [-1, -1],
-          [-1, 1],
-        ]
-      : [
-          [1, -1],
-          [1, 1],
-        ];
-
-    this.highlightNormalMoves(row, col, directions, isKing);
-    this.highlightCaptureMoves(row, col, directions, isKing);
+    possibleMoves.forEach((move) => {
+      this.highlightSquare(move.row, move.col, CSS_CLASSES.POSSIBLE_MOVE);
+    });
   }
 
   highlightNormalMoves(row, col, directions, isKing) {
