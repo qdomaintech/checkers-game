@@ -11,32 +11,36 @@
       <div class="board-container">
         <div id="checkers-board"></div>
       </div>
-
-      <div class="match-info-panel collapsed">
-        <div class="player-info">
-          <div class="player-card cazoo">
-            <div class="player-avatar">⚪</div>
-            <span class="player-name">Cazoo</span>
+      <div class="scoreboard-container">
+        <div class="players-row">
+          <div class="player-card active">
+            <div class="player-indicator"></div>
+            <span class="player-name">Uotoo</span>
             <span class="player-label">(P1)</span>
           </div>
-
-          <div class="player-card uotoo">
-            <div class="player-avatar">🔴</div>
-            <span class="player-name">Uotoo</span>
+          <div class="player-card">
+            <div class="player-indicator"></div>
+            <span class="player-name">Cazoo</span>
             <span class="player-label">(P2)</span>
           </div>
         </div>
-
-        <div class="game-stats">
-          <h3>Stack:</h3>
-          <p class="stack-amount">💰10,000 vs 💰10,000</p>
-
-          <h3>Piece movement:</h3>
-          <div class="move-log" id="move-log">
-            <p class="current-turn" id="current-player">Red's turn</p>
+        <div class="timers-row">
+          <div class="timer-bar active" style="width: 100%"></div>
+          <div class="timer-bar" style="width: 80%"></div>
+        </div>
+        <div class="match-stack">
+          <div>Stack:</div>
+          <div class="stack-values">
+            <span>💰<span class="stack-amount">10,000</span></span>
+            vs
+            <span>💰<span class="stack-amount">10,000</span></span>
           </div>
         </div>
+        <div class="piece-movement">
+          <div>Piece movement:</div>
+        </div>
       </div>
+      <!-- Match info panel removed (deprecated) -->
     </div>
     <!-- CHANGED: Use modular version with fixed logic -->
     <script type="module" src="main.js"></script>
