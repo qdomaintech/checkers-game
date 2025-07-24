@@ -130,7 +130,9 @@ export class MoveValidator {
       if (!isRed && rowDiff <= 0) return false; // black moves down
 
       // RESTORE: Force capture rule - if captures are available, you must capture
-      const capturesAvailable = this.hasAvailableCaptures(this.gameState.currentPlayer);
+      const capturesAvailable = this.hasAvailableCaptures(
+        this.gameState.currentPlayer
+      );
       if (capturesAvailable && Math.abs(rowDiff) === 1) return false; // must capture
 
       if (Math.abs(rowDiff) === 2) {
@@ -176,9 +178,11 @@ export class MoveValidator {
     }
 
     // RESTORE: Force capture rule for kings - must capture when captures available
-    const capturesAvailable = this.hasAvailableCaptures(this.gameState.currentPlayer);
+    const capturesAvailable = this.hasAvailableCaptures(
+      this.gameState.currentPlayer
+    );
     if (capturesAvailable && opponentCount === 0) return false; // must capture when any capture available
-    
+
     if (opponentCount > 0 && opponentCount !== 1) return false;
 
     return true;
@@ -195,7 +199,9 @@ export class MoveValidator {
       pieceType === PIECE_TYPES.RED || pieceType === PIECE_TYPES.RED_KING;
 
     // Check if any captures are available for the current player
-    const capturesAvailable = this.hasAvailableCaptures(this.gameState.currentPlayer);
+    const capturesAvailable = this.hasAvailableCaptures(
+      this.gameState.currentPlayer
+    );
 
     const dirMan = isRed
       ? [
@@ -283,5 +289,18 @@ export class MoveValidator {
     }
 
     return moves;
+  }
+
+  hasAnyValidMoves(player) {
+    for (let r = 0; r < BOARD_SIZE; r++) {
+      for (let c = 0; c < BOARD_SIZE; c++) {
+        const piece = this.gameState.board[r][c];
+        if (piece === PIECE_TYPES.EMPTY) continue;
+        if (!this.isPlayersPiece(piece, player)) continue;
+        const moves = this.getPossibleMoves(r, c);
+        if (moves && moves.length > 0) return true;
+      }
+    }
+    return false;
   }
 }
