@@ -123,17 +123,14 @@ export class MoveValidator {
     const colDiff = toCol - fromCol;
     if (Math.abs(rowDiff) !== Math.abs(colDiff)) return false; // must be diagonal
 
-    const capturesAvailable = this.hasAvailableCaptures(
-      this.gameState.currentPlayer
-    );
-
     if (!isKing) {
       // Men – simple rules
       if (!(Math.abs(rowDiff) === 1 || Math.abs(rowDiff) === 2)) return false;
       if (isRed && rowDiff >= 0) return false; // red moves up (row decreases)
       if (!isRed && rowDiff <= 0) return false; // black moves down
 
-      if (capturesAvailable && Math.abs(rowDiff) === 1) return false; // must capture
+      // REMOVED: Force capture rule - allow normal moves even when captures exist elsewhere
+      // if (capturesAvailable && Math.abs(rowDiff) === 1) return false; // must capture
 
       if (Math.abs(rowDiff) === 2) {
         const midRow = (fromRow + toRow) / 2;
@@ -152,17 +149,11 @@ export class MoveValidator {
     }
 
     // King logic
-    return this.isValidKingMove(
-      fromRow,
-      fromCol,
-      toRow,
-      toCol,
-      capturesAvailable
-    );
+    return this.isValidKingMove(fromRow, fromCol, toRow, toCol);
   }
 
-  /* King move validation similar to monolithic version */
-  isValidKingMove(fromRow, fromCol, toRow, toCol, capturesAvailable) {
+  /* King move validation */
+  isValidKingMove(fromRow, fromCol, toRow, toCol) {
     const rowDir = Math.sign(toRow - fromRow);
     const colDir = Math.sign(toCol - fromCol);
     const distance = Math.abs(toRow - fromRow);
@@ -183,7 +174,9 @@ export class MoveValidator {
       }
     }
 
-    if (capturesAvailable && opponentCount === 0) return false; // must capture when any capture available
+    // REMOVED: Force capture rule for kings - allow normal moves
+    // if (capturesAvailable && opponentCount === 0) return false; // must capture when any capture available
+
     if (opponentCount > 0 && opponentCount !== 1) return false;
 
     return true;
@@ -198,9 +191,6 @@ export class MoveValidator {
     const isKing = this.gameState.isKing(pieceType);
     const isRed =
       pieceType === PIECE_TYPES.RED || pieceType === PIECE_TYPES.RED_KING;
-    const capturesAvailable = this.hasAvailableCaptures(
-      this.gameState.currentPlayer
-    );
 
     const dirMan = isRed
       ? [
@@ -221,12 +211,12 @@ export class MoveValidator {
     const addMove = (r, c, type) => moves.push({ row: r, col: c, type });
 
     if (!isKing) {
-      // normal piece
+      // normal piece - ALLOW BOTH MOVES AND CAPTURES
       for (const [dr, dc] of dirMan) {
         const newRow = row + dr;
         const newCol = col + dc;
+        // Allow normal moves regardless of captures available elsewhere
         if (
-          !capturesAvailable &&
           this.isValidPosition(newRow, newCol) &&
           this.gameState.board[newRow][newCol] === PIECE_TYPES.EMPTY
         ) {
@@ -251,7 +241,7 @@ export class MoveValidator {
         }
       }
     } else {
-      // king moves
+      // king moves - ALLOW BOTH MOVES AND CAPTURES
       for (const [dr, dc] of dirKing) {
         let foundOpponent = false;
         for (let dist = 1; dist < BOARD_SIZE; dist++) {
@@ -260,7 +250,8 @@ export class MoveValidator {
           if (!this.isValidPosition(newRow, newCol)) break;
           const pieceAt = this.gameState.board[newRow][newCol];
           if (pieceAt === PIECE_TYPES.EMPTY) {
-            if (!capturesAvailable && !foundOpponent) {
+            // Allow normal king moves regardless of captures available elsewhere
+            if (!foundOpponent) {
               addMove(newRow, newCol, "move");
             }
             if (foundOpponent) {

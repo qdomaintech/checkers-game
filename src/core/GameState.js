@@ -1,4 +1,4 @@
-import { PIECE_TYPES, BOARD_SIZE } from "../utils/Constants.js";
+import { PIECE_TYPES, BOARD_SIZE, PLAYER_COLORS } from "../utils/Constants.js";
 
 export class GameState {
   constructor() {

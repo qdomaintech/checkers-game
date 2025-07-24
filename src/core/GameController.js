@@ -90,13 +90,35 @@ export class GameController {
         toCol
       );
 
-      this.gameState.switchPlayer();
+      const pieceType = this.gameState.board[toRow][toCol];
+      const additionalCaptures =
+        captureOccurred &&
+        this.moveValidator.pieceHasCaptures(toRow, toCol, pieceType);
+
+      if (!additionalCaptures) {
+        this.gameState.switchPlayer();
+      }
+
+      // Re-render board after move (and potential turn switch)
       this.boardRenderer.createBoard();
       this.updateCurrentPlayerDisplay();
       this.sendMoveToParent(fromRow, fromCol, toRow, toCol);
-    }
 
-    this.deselectPiece();
+      if (additionalCaptures) {
+        // Auto-select the same piece so the player can continue jumping
+        const square = document.querySelector(
+          `[data-row="${toRow}"][data-col="${toCol}"]`
+        );
+        const piece = square?.querySelector(`.${CSS_CLASSES.PIECE}`);
+        if (piece) {
+          this.selectPiece(piece, toRow, toCol);
+        }
+      } else {
+        this.deselectPiece();
+      }
+    } else {
+      this.deselectPiece();
+    }
   }
 
   isPieceOwnedByCurrentPlayer(piece) {
@@ -157,24 +179,7 @@ export class GameController {
   }
 
   sendMoveToParent(fromRow, fromCol, toRow, toCol) {
-    // Determine next player based on current board state
-    const pieceType = this.gameState.board[toRow][toCol];
-    const captureOccurred =
-      Math.abs(toRow - fromRow) === 2 ||
-      (this.gameState.isKing(pieceType) && Math.abs(toRow - fromRow) > 1);
-
-    let nextPlayerColor = this.gameState.currentPlayer;
-
-    if (
-      !captureOccurred ||
-      !this.moveValidator.pieceHasCaptures(toRow, toCol, pieceType)
-    ) {
-      nextPlayerColor =
-        this.gameState.currentPlayer === PLAYER_COLORS.RED
-          ? PLAYER_COLORS.BLACK
-          : PLAYER_COLORS.RED;
-    }
-
+    const nextPlayerColor = this.gameState.currentPlayer;
     const nextPlayerId =
       nextPlayerColor === PLAYER_COLORS.RED
         ? this.gameState.redPlayerId
