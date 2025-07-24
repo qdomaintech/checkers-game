@@ -296,6 +296,10 @@ body {
   z-index: 2;
 }
 
+.match-info-panel.collapsed {
+  display: none !important;
+}
+
 @media (max-width: 900px) {
   .game-layout {
     flex-direction: column;
