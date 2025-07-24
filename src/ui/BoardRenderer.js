@@ -231,6 +231,11 @@ export class BoardRenderer {
     );
     if (square) {
       square.classList.add(className);
+      if (className === CSS_CLASSES.POSSIBLE_MOVE && !square.querySelector('.inner-ring')) {
+        const ring = document.createElement('div');
+        ring.className = 'inner-ring';
+        square.appendChild(ring);
+      }
     }
   }
 
