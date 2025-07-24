@@ -191,7 +191,22 @@ body {
   }
 }
 
-/* Match Info Panel */
+/*
+============================================
+DEPRECATED: The following CSS selectors are related to the match info panel, which has been removed from the HTML. These styles are retained for reference and may be deleted in the future.
+
+Affected selectors:
+.match-info-panel
+.player-info
+.player-card
+.game-stats
+.stack-amount
+.move-log
+.current-turn
+.move-entry
+(and any other related selectors)
+============================================
+*/
 .match-info-panel {
   background: #1a4040;
   border-radius: 15px;
