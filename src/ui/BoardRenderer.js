@@ -19,7 +19,12 @@ export class BoardRenderer {
       for (let col = 0; col < BOARD_SIZE; col++) {
         const square = this.createSquare(row, col);
 
-        if (this.gameState.board[row][col] !== PIECE_TYPES.EMPTY) {
+        // Only render pieces if the board is loaded
+        if (
+          this.gameState.board &&
+          this.gameState.board[row] &&
+          this.gameState.board[row][col] !== PIECE_TYPES.EMPTY
+        ) {
           const piece = this.createPiece(
             this.gameState.board[row][col],
             row,
@@ -32,7 +37,24 @@ export class BoardRenderer {
       }
     }
 
-    this.highlightMustCapturePieces();
+    // Only highlight must-capture pieces if the board is loaded
+    if (this.gameState.board) {
+      this.highlightMustCapturePieces();
+    }
+    // Optionally, trigger a loading spinner in the main UI if board is null
+    if (
+      !this.gameState.board &&
+      typeof window !== "undefined" &&
+      window.showLoadingSpinner
+    ) {
+      window.showLoadingSpinner();
+    } else if (
+      this.gameState.board &&
+      typeof window !== "undefined" &&
+      window.hideLoadingSpinner
+    ) {
+      window.hideLoadingSpinner();
+    }
   }
 
   createSquare(row, col) {
