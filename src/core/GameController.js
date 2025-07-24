@@ -15,8 +15,6 @@ export class GameController {
   }
 
   initialize() {
-    this.gameState.initializeBoard();
-
     // Enable standalone play (both players can play locally)
     this.gameState.isMyTurn = true;
     this.gameState.myColor = this.gameState.currentPlayer;
@@ -107,6 +105,15 @@ export class GameController {
       // Re-render board after move (and potential turn switch)
       this.boardRenderer.createBoard();
       this.updateCurrentPlayerDisplay();
+
+      // Check for winner and send to Bubble if game is over
+      const winner = this.gameState.getWinner();
+      if (winner) {
+        this.sendMoveToParent(fromRow, fromCol, toRow, toCol, winner);
+        this.deselectPiece();
+        return;
+      }
+
       this.sendMoveToParent(fromRow, fromCol, toRow, toCol);
 
       if (additionalCaptures) {
@@ -183,7 +190,7 @@ export class GameController {
     }
   }
 
-  sendMoveToParent(fromRow, fromCol, toRow, toCol) {
+  sendMoveToParent(fromRow, fromCol, toRow, toCol, winner = null) {
     const nextPlayerColor = this.gameState.currentPlayer;
     const nextPlayerId =
       nextPlayerColor === PLAYER_COLORS.RED
@@ -200,6 +207,7 @@ export class GameController {
         to_row: toRow,
         to_col: toCol,
       };
+      if (winner) moveData.winner = winner;
 
       fetch(this.gameState.apiEndpoint, {
         method: "POST",
@@ -222,6 +230,7 @@ export class GameController {
           gameState: this.gameState.board,
         },
       };
+      if (winner) moveData.winner = winner;
 
       window.parent.postMessage(moveData, "*");
     }

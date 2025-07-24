@@ -2,9 +2,7 @@ import { PIECE_TYPES, BOARD_SIZE, PLAYER_COLORS } from "../utils/Constants.js";
 
 export class GameState {
   constructor() {
-    this.board = Array(BOARD_SIZE)
-      .fill()
-      .map(() => Array(BOARD_SIZE).fill(PIECE_TYPES.EMPTY));
+    this.board = null;
     this.currentPlayer = PLAYER_COLORS.RED;
     this.selectedPiece = null;
     this.gameId = null;
@@ -171,5 +169,35 @@ export class GameState {
     } else {
       this.isMyTurn = this.currentPlayer === this.myColor;
     }
+  }
+
+  getWinner() {
+    // Count pieces for each player
+    let redCount = 0,
+      blackCount = 0;
+    for (let row = 0; row < this.board.length; row++) {
+      for (let col = 0; col < this.board[row].length; col++) {
+        const piece = this.board[row][col];
+        if (piece === PIECE_TYPES.RED || piece === PIECE_TYPES.RED_KING)
+          redCount++;
+        if (piece === PIECE_TYPES.BLACK || piece === PIECE_TYPES.BLACK_KING)
+          blackCount++;
+      }
+    }
+    if (redCount === 0) return "black";
+    if (blackCount === 0) return "red";
+
+    // Check if either player has no valid moves
+    // (MoveValidator must be available globally or imported here)
+    if (typeof window !== "undefined" && window.MoveValidator) {
+      const mv = new window.MoveValidator(this);
+      if (!mv.hasAnyValidMoves) {
+        // fallback if method not present
+        return null;
+      }
+      if (!mv.hasAnyValidMoves(PLAYER_COLORS.RED)) return "black";
+      if (!mv.hasAnyValidMoves(PLAYER_COLORS.BLACK)) return "red";
+    }
+    return null;
   }
 }
