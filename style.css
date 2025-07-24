@@ -78,8 +78,10 @@ body {
 .square.possible-move::before {
   content: "";
   position: absolute;
-  top: 0; left: 0;
-  width: 70px; height: 70px;
+  top: 0;
+  left: 0;
+  width: 70px;
+  height: 70px;
   border: 5px solid #5bc0ff; /* outermost ring: blue */
   border-radius: 50%;
   box-sizing: border-box;
@@ -89,8 +91,10 @@ body {
 .square.possible-move::after {
   content: "";
   position: absolute;
-  top: 10px; left: 10px;
-  width: 50px; height: 50px;
+  top: 10px;
+  left: 10px;
+  width: 50px;
+  height: 50px;
   border: 5px solid #ffb347; /* middle ring: orange */
   border-radius: 50%;
   box-sizing: border-box;
@@ -99,8 +103,10 @@ body {
 
 .square.possible-move .inner-ring {
   position: absolute;
-  top: 20px; left: 20px;
-  width: 30px; height: 30px;
+  top: 20px;
+  left: 20px;
+  width: 30px;
+  height: 30px;
   border: 5px solid #ffe066; /* innermost ring: yellow */
   border-radius: 50%;
   box-sizing: border-box;
@@ -277,6 +283,17 @@ body {
 .piece.opponent-selected {
   box-shadow: 0 0 15px rgba(255, 255, 0, 0.5), 0 4px 12px rgba(0, 0, 0, 0.4);
   z-index: 1;
+}
+
+.square-number-label {
+  position: absolute;
+  top: 2px;
+  left: 4px;
+  font-style: italic;
+  font-size: 0.7em;
+  color: #888;
+  pointer-events: none;
+  z-index: 2;
 }
 
 @media (max-width: 900px) {

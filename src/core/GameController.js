@@ -3,6 +3,11 @@ import { MoveValidator } from "../rules/MoveValidator.js";
 import { BoardRenderer } from "../ui/BoardRenderer.js";
 import { EVENTS, CSS_CLASSES, PLAYER_COLORS } from "../utils/Constants.js";
 
+// Utility function to convert (row, col) to square number (1-64)
+function toSquareNumber(row, col) {
+  return row * 8 + col + 1;
+}
+
 export class GameController {
   constructor() {
     this.gameState = new GameState();
@@ -197,6 +202,9 @@ export class GameController {
         ? this.gameState.redPlayerId
         : this.gameState.blackPlayerId;
 
+    const from_square = toSquareNumber(fromRow, fromCol);
+    const to_square = toSquareNumber(toRow, toCol);
+
     if (this.gameState.gameId && this.gameState.apiEndpoint) {
       const moveData = {
         game_id: this.gameState.gameId,
@@ -206,6 +214,8 @@ export class GameController {
         from_col: fromCol,
         to_row: toRow,
         to_col: toCol,
+        from_square,
+        to_square,
       };
       if (winner) moveData.winner = winner;
 
@@ -225,6 +235,8 @@ export class GameController {
         move: {
           from: { row: fromRow, col: fromCol },
           to: { row: toRow, col: toCol },
+          from_square,
+          to_square,
           player: this.gameState.currentPlayer,
           timestamp: new Date().toISOString(),
           gameState: this.gameState.board,

@@ -6,6 +6,11 @@ import {
 } from "../utils/Constants.js";
 import { MoveValidator } from "../rules/MoveValidator.js";
 
+// Utility function to convert (row, col) to square number (1-64)
+function toSquareNumber(row, col) {
+  return row * 8 + col + 1;
+}
+
 export class BoardRenderer {
   constructor(boardElement, gameState) {
     this.boardElement = boardElement;
@@ -62,6 +67,14 @@ export class BoardRenderer {
     square.classList.add(CSS_CLASSES.SQUARE);
     square.dataset.row = row;
     square.dataset.col = col;
+    square.style.position = "relative"; // Ensure relative positioning for absolute children
+
+    // Add the square number visibly to the square
+    const squareNumber = toSquareNumber(row, col);
+    const numberLabel = document.createElement("span");
+    numberLabel.classList.add("square-number-label");
+    numberLabel.textContent = squareNumber;
+    square.appendChild(numberLabel);
 
     if ((row + col) % 2 === 1) {
       square.classList.add(CSS_CLASSES.DARK);
@@ -231,9 +244,12 @@ export class BoardRenderer {
     );
     if (square) {
       square.classList.add(className);
-      if (className === CSS_CLASSES.POSSIBLE_MOVE && !square.querySelector('.inner-ring')) {
-        const ring = document.createElement('div');
-        ring.className = 'inner-ring';
+      if (
+        className === CSS_CLASSES.POSSIBLE_MOVE &&
+        !square.querySelector(".inner-ring")
+      ) {
+        const ring = document.createElement("div");
+        ring.className = "inner-ring";
         square.appendChild(ring);
       }
     }
