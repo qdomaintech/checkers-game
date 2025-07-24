@@ -113,7 +113,7 @@ export class GameController {
     if (display) {
       const playerName =
         this.gameState.currentPlayer === PLAYER_COLORS.RED ? "Uotoo" : "Cazoo";
-      
+
       display.textContent = `${playerName}'s turn`;
       display.style.color =
         this.gameState.currentPlayer === PLAYER_COLORS.RED
