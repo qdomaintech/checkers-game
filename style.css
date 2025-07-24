@@ -31,8 +31,11 @@ body {
   flex: 1 1 0%;
   min-width: 0;
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
+  /* Remove horizontal padding and centering for full-width board */
+  padding-left: 0;
+  padding-right: 0;
 }
 
 #checkers-board {
