@@ -1,4 +1,10 @@
-import { PIECE_TYPES, CSS_CLASSES, BOARD_SIZE } from "../utils/Constants.js";
+import {
+  PIECE_TYPES,
+  CSS_CLASSES,
+  BOARD_SIZE,
+  PLAYER_COLORS,
+} from "../utils/Constants.js";
+import { MoveValidator } from "../rules/MoveValidator.js";
 
 export class BoardRenderer {
   constructor(boardElement, gameState) {
