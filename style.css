@@ -19,8 +19,8 @@ body {
   display: flex;
   gap: 20px;
   align-items: flex-start;
-  max-width: 1200px;
   width: 100%;
+  max-width: none;
 }
 
 .board-container {
@@ -28,20 +28,30 @@ body {
   border-radius: 15px;
   padding: 15px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  flex: 1 1 0%;
+  min-width: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 #checkers-board {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  height: auto;
   display: grid;
-  grid-template: repeat(8, 70px) / repeat(8, 70px);
+  grid-template: repeat(8, 1fr) / repeat(8, 1fr);
   border: 2px solid #333;
   border-radius: 8px;
   overflow: hidden;
-  transition: transform 0.5s ease; /* Add smooth rotation transition */
+  transition: transform 0.5s ease;
+  max-width: 100vw;
 }
 
 .square {
-  width: 70px;
-  height: 70px;
+  width: 100%;
+  height: 100%;
+  aspect-ratio: 1 / 1;
   display: flex;
   justify-content: center;
   align-items: center;
